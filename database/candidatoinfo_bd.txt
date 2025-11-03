@@ -1,0 +1,432 @@
+-- Base de datos para sistema de info electoral Perú 2026
+-- CandidatoInfo
+
+DROP DATABASE IF EXISTS candidatoinfo;
+CREATE DATABASE candidatoinfo CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+USE candidatoinfo;
+
+-- Partidos y alianzas políticas
+CREATE TABLE partidos_politicos (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    nombre VARCHAR(200) NOT NULL,
+    siglas VARCHAR(50) NOT NULL UNIQUE,
+    logo_url VARCHAR(500),
+    color_principal VARCHAR(7),
+    tipo ENUM('partido', 'alianza') DEFAULT 'partido',
+    ideologia VARCHAR(100),
+    fundacion_año INT,
+    descripcion TEXT,
+    sitio_web VARCHAR(200),
+    estado ENUM('activo', 'inactivo', 'inhabilitado') DEFAULT 'activo',
+    fecha_registro TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    fecha_actualizacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    INDEX idx_estado (estado),
+    INDEX idx_nombre (nombre)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- 27 circunscripciones electorales
+CREATE TABLE circunscripciones (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    nombre VARCHAR(100) NOT NULL UNIQUE,
+    codigo VARCHAR(10) NOT NULL UNIQUE,
+    tipo ENUM('departamento', 'provincia_constitucional', 'exterior') NOT NULL,
+    poblacion INT,
+    electores_registrados INT,
+    capital VARCHAR(100),
+    imagen_url VARCHAR(500), -- Mapa o imagen del departamento
+    bandera_url VARCHAR(500),
+    escudo_url VARCHAR(500),
+    numero_diputados INT DEFAULT 1, -- Cantidad de diputados que elige
+    numero_senadores INT DEFAULT 1, -- Cantidad de senadores regionales que elige
+    latitud DECIMAL(10, 8),
+    longitud DECIMAL(11, 8),
+    descripcion TEXT,
+    fecha_registro TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    INDEX idx_tipo (tipo),
+    INDEX idx_nombre (nombre)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Candidatos presidenciales (presidente + 2 vicepresidentes)
+CREATE TABLE candidatos_presidenciales (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    partido_id INT NOT NULL,
+    
+    -- Datos del presidente
+    presidente_nombre VARCHAR(200) NOT NULL,
+    presidente_apellidos VARCHAR(200) NOT NULL,
+    presidente_dni VARCHAR(8) NOT NULL UNIQUE,
+    presidente_foto_url VARCHAR(500),
+    presidente_fecha_nacimiento DATE,
+    presidente_profesion VARCHAR(200),
+    presidente_biografia TEXT,
+    presidente_genero ENUM('M', 'F', 'Otro') NOT NULL,
+    
+    -- Primer vice
+    vicepresidente1_nombre VARCHAR(200) NOT NULL,
+    vicepresidente1_apellidos VARCHAR(200) NOT NULL,
+    vicepresidente1_dni VARCHAR(8) NOT NULL UNIQUE,
+    vicepresidente1_foto_url VARCHAR(500),
+    vicepresidente1_fecha_nacimiento DATE,
+    vicepresidente1_profesion VARCHAR(200),
+    vicepresidente1_biografia TEXT,
+    vicepresidente1_genero ENUM('M', 'F', 'Otro') NOT NULL,
+    
+    -- Segundo vice
+    vicepresidente2_nombre VARCHAR(200) NOT NULL,
+    vicepresidente2_apellidos VARCHAR(200) NOT NULL,
+    vicepresidente2_dni VARCHAR(8) NOT NULL UNIQUE,
+    vicepresidente2_foto_url VARCHAR(500),
+    vicepresidente2_fecha_nacimiento DATE,
+    vicepresidente2_profesion VARCHAR(200),
+    vicepresidente2_biografia TEXT,
+    vicepresidente2_genero ENUM('M', 'F', 'Otro') NOT NULL,
+    
+    -- Info general
+    plan_gobierno_url VARCHAR(500),
+    numero_lista INT,
+    estado ENUM('inscrito', 'observado', 'excluido', 'aprobado') DEFAULT 'inscrito',
+    fecha_inscripcion DATE,
+    fecha_registro TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    fecha_actualizacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    
+    FOREIGN KEY (partido_id) REFERENCES partidos_politicos(id) ON DELETE CASCADE,
+    INDEX idx_partido (partido_id),
+    INDEX idx_estado (estado)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Senadores nacionales (30 escaños - distrito único)
+CREATE TABLE candidatos_senadores_nacionales (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    partido_id INT NOT NULL,
+    nombre VARCHAR(200) NOT NULL,
+    apellidos VARCHAR(200) NOT NULL,
+    dni VARCHAR(8) NOT NULL UNIQUE,
+    foto_url VARCHAR(500),
+    fecha_nacimiento DATE,
+    edad INT,
+    genero ENUM('M', 'F', 'Otro') NOT NULL,
+    profesion VARCHAR(200),
+    experiencia_politica TEXT,
+    biografia TEXT,
+    hoja_vida_url VARCHAR(500),
+    posicion_lista INT NOT NULL,
+    numero_preferencial INT,
+    estado ENUM('inscrito', 'observado', 'excluido', 'aprobado') DEFAULT 'inscrito',
+    fecha_inscripcion DATE,
+    fecha_registro TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    fecha_actualizacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    
+    FOREIGN KEY (partido_id) REFERENCES partidos_politicos(id) ON DELETE CASCADE,
+    UNIQUE KEY unique_partido_posicion (partido_id, posicion_lista),
+    INDEX idx_partido (partido_id),
+    INDEX idx_genero (genero),
+    INDEX idx_estado (estado)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Senadores regionales (30 escaños en 27 circunscripciones)
+CREATE TABLE candidatos_senadores_regionales (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    partido_id INT NOT NULL,
+    circunscripcion_id INT NOT NULL,
+    nombre VARCHAR(200) NOT NULL,
+    apellidos VARCHAR(200) NOT NULL,
+    dni VARCHAR(8) NOT NULL,
+    foto_url VARCHAR(500),
+    fecha_nacimiento DATE,
+    edad INT,
+    genero ENUM('M', 'F', 'Otro') NOT NULL,
+    profesion VARCHAR(200),
+    experiencia_politica TEXT,
+    biografia TEXT,
+    hoja_vida_url VARCHAR(500),
+    posicion_lista INT NOT NULL,
+    numero_preferencial INT,
+    es_natural_circunscripcion BOOLEAN DEFAULT FALSE,
+    estado ENUM('inscrito', 'observado', 'excluido', 'aprobado') DEFAULT 'inscrito',
+    fecha_inscripcion DATE,
+    fecha_registro TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    fecha_actualizacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    
+    FOREIGN KEY (partido_id) REFERENCES partidos_politicos(id) ON DELETE CASCADE,
+    FOREIGN KEY (circunscripcion_id) REFERENCES circunscripciones(id) ON DELETE CASCADE,
+    UNIQUE KEY unique_dni_circunscripcion (dni, circunscripcion_id),
+    UNIQUE KEY unique_partido_circunscripcion_posicion (partido_id, circunscripcion_id, posicion_lista),
+    INDEX idx_partido (partido_id),
+    INDEX idx_circunscripcion (circunscripcion_id),
+    INDEX idx_genero (genero),
+    INDEX idx_estado (estado)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Diputados (130 escaños en 27 circunscripciones)
+CREATE TABLE candidatos_diputados (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    partido_id INT NOT NULL,
+    circunscripcion_id INT NOT NULL,
+    nombre VARCHAR(200) NOT NULL,
+    apellidos VARCHAR(200) NOT NULL,
+    dni VARCHAR(8) NOT NULL,
+    foto_url VARCHAR(500),
+    fecha_nacimiento DATE,
+    edad INT,
+    genero ENUM('M', 'F', 'Otro') NOT NULL,
+    profesion VARCHAR(200),
+    experiencia_politica TEXT,
+    biografia TEXT,
+    hoja_vida_url VARCHAR(500),
+    posicion_lista INT NOT NULL,
+    numero_preferencial INT,
+    es_natural_circunscripcion BOOLEAN DEFAULT FALSE,
+    estado ENUM('inscrito', 'observado', 'excluido', 'aprobado') DEFAULT 'inscrito',
+    fecha_inscripcion DATE,
+    fecha_registro TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    fecha_actualizacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    
+    FOREIGN KEY (partido_id) REFERENCES partidos_politicos(id) ON DELETE CASCADE,
+    FOREIGN KEY (circunscripcion_id) REFERENCES circunscripciones(id) ON DELETE CASCADE,
+    UNIQUE KEY unique_dni_circunscripcion (dni, circunscripcion_id),
+    UNIQUE KEY unique_partido_circunscripcion_posicion (partido_id, circunscripcion_id, posicion_lista),
+    INDEX idx_partido (partido_id),
+    INDEX idx_circunscripcion (circunscripcion_id),
+    INDEX idx_genero (genero),
+    INDEX idx_estado (estado)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Parlamento Andino (5 escaños nacionales)
+CREATE TABLE candidatos_parlamento_andino (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    partido_id INT NOT NULL,
+    nombre VARCHAR(200) NOT NULL,
+    apellidos VARCHAR(200) NOT NULL,
+    dni VARCHAR(8) NOT NULL UNIQUE,
+    foto_url VARCHAR(500),
+    fecha_nacimiento DATE,
+    edad INT,
+    genero ENUM('M', 'F', 'Otro') NOT NULL,
+    profesion VARCHAR(200),
+    experiencia_politica TEXT,
+    experiencia_internacional TEXT,
+    biografia TEXT,
+    hoja_vida_url VARCHAR(500),
+    posicion_lista INT NOT NULL,
+    numero_preferencial INT,
+    idiomas VARCHAR(200),
+    estado ENUM('inscrito', 'observado', 'excluido', 'aprobado') DEFAULT 'inscrito',
+    fecha_inscripcion DATE,
+    fecha_registro TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    fecha_actualizacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    
+    FOREIGN KEY (partido_id) REFERENCES partidos_politicos(id) ON DELETE CASCADE,
+    UNIQUE KEY unique_partido_posicion (partido_id, posicion_lista),
+    INDEX idx_partido (partido_id),
+    INDEX idx_genero (genero),
+    INDEX idx_estado (estado)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Resultados presidenciales
+CREATE TABLE resultados_presidenciales (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    candidato_id INT NOT NULL,
+    circunscripcion_id INT,
+    votos_obtenidos INT DEFAULT 0,
+    porcentaje DECIMAL(5,2) DEFAULT 0.00,
+    actas_procesadas INT DEFAULT 0,
+    actas_totales INT DEFAULT 0,
+    vuelta ENUM('primera', 'segunda') DEFAULT 'primera',
+    fecha_actualizacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    
+    FOREIGN KEY (candidato_id) REFERENCES candidatos_presidenciales(id) ON DELETE CASCADE,
+    FOREIGN KEY (circunscripcion_id) REFERENCES circunscripciones(id) ON DELETE CASCADE,
+    UNIQUE KEY unique_candidato_circunscripcion_vuelta (candidato_id, circunscripcion_id, vuelta),
+    INDEX idx_candidato (candidato_id),
+    INDEX idx_circunscripcion (circunscripcion_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Resultados senadores nacionales
+CREATE TABLE resultados_senadores_nacionales (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    candidato_id INT NOT NULL,
+    votos_preferenciales INT DEFAULT 0,
+    votos_lista INT DEFAULT 0,
+    votos_totales INT DEFAULT 0,
+    es_elegido BOOLEAN DEFAULT FALSE,
+    fecha_actualizacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    
+    FOREIGN KEY (candidato_id) REFERENCES candidatos_senadores_nacionales(id) ON DELETE CASCADE,
+    UNIQUE KEY unique_candidato (candidato_id),
+    INDEX idx_candidato (candidato_id),
+    INDEX idx_elegido (es_elegido)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Resultados senadores regionales
+CREATE TABLE resultados_senadores_regionales (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    candidato_id INT NOT NULL,
+    circunscripcion_id INT NOT NULL,
+    votos_preferenciales INT DEFAULT 0,
+    votos_lista INT DEFAULT 0,
+    votos_totales INT DEFAULT 0,
+    es_elegido BOOLEAN DEFAULT FALSE,
+    fecha_actualizacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    
+    FOREIGN KEY (candidato_id) REFERENCES candidatos_senadores_regionales(id) ON DELETE CASCADE,
+    FOREIGN KEY (circunscripcion_id) REFERENCES circunscripciones(id) ON DELETE CASCADE,
+    UNIQUE KEY unique_candidato_circunscripcion (candidato_id, circunscripcion_id),
+    INDEX idx_candidato (candidato_id),
+    INDEX idx_circunscripcion (circunscripcion_id),
+    INDEX idx_elegido (es_elegido)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Resultados diputados
+CREATE TABLE resultados_diputados (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    candidato_id INT NOT NULL,
+    circunscripcion_id INT NOT NULL,
+    votos_preferenciales INT DEFAULT 0,
+    votos_lista INT DEFAULT 0,
+    votos_totales INT DEFAULT 0,
+    es_elegido BOOLEAN DEFAULT FALSE,
+    fecha_actualizacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    
+    FOREIGN KEY (candidato_id) REFERENCES candidatos_diputados(id) ON DELETE CASCADE,
+    FOREIGN KEY (circunscripcion_id) REFERENCES circunscripciones(id) ON DELETE CASCADE,
+    UNIQUE KEY unique_candidato_circunscripcion (candidato_id, circunscripcion_id),
+    INDEX idx_candidato (candidato_id),
+    INDEX idx_circunscripcion (circunscripcion_id),
+    INDEX idx_elegido (es_elegido)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Resultados Parlamento Andino
+CREATE TABLE resultados_parlamento_andino (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    candidato_id INT NOT NULL,
+    votos_preferenciales INT DEFAULT 0,
+    votos_lista INT DEFAULT 0,
+    votos_totales INT DEFAULT 0,
+    es_elegido BOOLEAN DEFAULT FALSE,
+    fecha_actualizacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    
+    FOREIGN KEY (candidato_id) REFERENCES candidatos_parlamento_andino(id) ON DELETE CASCADE,
+    UNIQUE KEY unique_candidato (candidato_id),
+    INDEX idx_candidato (candidato_id),
+    INDEX idx_elegido (es_elegido)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Usuarios del sistema
+CREATE TABLE usuarios (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    username VARCHAR(100) NOT NULL UNIQUE,
+    email VARCHAR(200) NOT NULL UNIQUE,
+    password_hash VARCHAR(255) NOT NULL,
+    nombre_completo VARCHAR(200),
+    rol ENUM('admin', 'editor', 'visualizador') DEFAULT 'visualizador',
+    avatar_url VARCHAR(500),
+    estado ENUM('activo', 'inactivo', 'suspendido') DEFAULT 'activo',
+    ultimo_acceso TIMESTAMP NULL,
+    fecha_registro TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    fecha_actualizacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    
+    INDEX idx_username (username),
+    INDEX idx_email (email),
+    INDEX idx_rol (rol)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Datos iniciales: 27 circunscripciones electorales
+INSERT INTO circunscripciones (nombre, codigo, tipo, numero_diputados, numero_senadores) VALUES
+-- 24 departamentos
+('Amazonas', 'AMA', 'departamento', 2, 1),
+('Áncash', 'ANC', 'departamento', 5, 1),
+('Apurímac', 'APU', 'departamento', 2, 1),
+('Arequipa', 'ARE', 'departamento', 6, 1),
+('Ayacucho', 'AYA', 'departamento', 3, 1),
+('Cajamarca', 'CAJ', 'departamento', 6, 1),
+('Cusco', 'CUS', 'departamento', 6, 1),
+('Huancavelica', 'HUA', 'departamento', 2, 1),
+('Huánuco', 'HUC', 'departamento', 4, 1),
+('Ica', 'ICA', 'departamento', 4, 1),
+('Junín', 'JUN', 'departamento', 6, 1),
+('La Libertad', 'LAL', 'departamento', 8, 1),
+('Lambayeque', 'LAM', 'departamento', 6, 1),
+('Lima', 'LIM', 'departamento', 38, 4),
+('Loreto', 'LOR', 'departamento', 4, 1),
+('Madre de Dios', 'MDD', 'departamento', 2, 1),
+('Moquegua', 'MOQ', 'departamento', 2, 1),
+('Pasco', 'PAS', 'departamento', 2, 1),
+('Piura', 'PIU', 'departamento', 8, 1),
+('Puno', 'PUN', 'departamento', 6, 1),
+('San Martín', 'SAM', 'departamento', 4, 1),
+('Tacna', 'TAC', 'departamento', 2, 1),
+('Tumbes', 'TUM', 'departamento', 2, 1),
+('Ucayali', 'UCA', 'departamento', 2, 1),
+-- Provincias constitucionales
+('Lima Provincias', 'LIP', 'provincia_constitucional', 4, 1),
+('Callao', 'CAL', 'provincia_constitucional', 4, 1),
+-- Peruanos en el exterior
+('Peruanos en el Extranjero', 'EXT', 'exterior', 2, 1);
+
+-- Usuario administrador por defecto
+INSERT INTO usuarios (username, email, password_hash, nombre_completo, rol, estado) VALUES
+('juan', 'juan.aguirre.s@tecsup.edu.pe', '$2b$12$HcihvMTvJf7vxRnG0HcbiO5yMd/LAniR8gaovyuDW/63JzfXXWk2m', 'Juan Aguirre', 'admin', 'activo');
+
+-- Vistas útiles para consultas
+
+-- Candidatos presidenciales con su partido
+CREATE VIEW vista_candidatos_presidenciales AS
+SELECT 
+    cp.id,
+    pp.nombre AS partido_nombre,
+    pp.siglas AS partido_siglas,
+    pp.logo_url AS partido_logo,
+    CONCAT(cp.presidente_nombre, ' ', cp.presidente_apellidos) AS presidente_completo,
+    cp.presidente_foto_url,
+    CONCAT(cp.vicepresidente1_nombre, ' ', cp.vicepresidente1_apellidos) AS vicepresidente1_completo,
+    CONCAT(cp.vicepresidente2_nombre, ' ', cp.vicepresidente2_apellidos) AS vicepresidente2_completo,
+    cp.numero_lista,
+    cp.estado,
+    cp.plan_gobierno_url
+FROM candidatos_presidenciales cp
+INNER JOIN partidos_politicos pp ON cp.partido_id = pp.id
+WHERE cp.estado = 'aprobado';
+
+-- Senadores nacionales
+CREATE VIEW vista_senadores_nacionales AS
+SELECT 
+    csn.id,
+    pp.nombre AS partido_nombre,
+    pp.siglas AS partido_siglas,
+    pp.logo_url AS partido_logo,
+    CONCAT(csn.nombre, ' ', csn.apellidos) AS nombre_completo,
+    csn.foto_url,
+    csn.genero,
+    csn.profesion,
+    csn.posicion_lista,
+    csn.numero_preferencial,
+    csn.estado
+FROM candidatos_senadores_nacionales csn
+INNER JOIN partidos_politicos pp ON csn.partido_id = pp.id
+WHERE csn.estado = 'aprobado'
+ORDER BY pp.id, csn.posicion_lista;
+
+-- Diputados por circunscripción
+CREATE VIEW vista_diputados AS
+SELECT 
+    cd.id,
+    pp.nombre AS partido_nombre,
+    pp.siglas AS partido_siglas,
+    c.nombre AS circunscripcion_nombre,
+    CONCAT(cd.nombre, ' ', cd.apellidos) AS nombre_completo,
+    cd.foto_url,
+    cd.genero,
+    cd.profesion,
+    cd.posicion_lista,
+    cd.estado
+FROM candidatos_diputados cd
+INNER JOIN partidos_politicos pp ON cd.partido_id = pp.id
+INNER JOIN circunscripciones c ON cd.circunscripcion_id = c.id
+WHERE cd.estado = 'aprobado'
+ORDER BY c.nombre, pp.id, cd.posicion_lista;
+
+-- Verificar creación de tablas
+SHOW TABLES;
+
+-- Verificar circunscripciones
+SELECT * FROM circunscripciones ORDER BY nombre;
