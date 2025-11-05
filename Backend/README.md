@@ -1,7 +1,7 @@
 # 🗳️ BACKEND - Sistema de Información Electoral
 
 ## 📋 Descripción
-Backend desarrollado en Django Rest Framework para gestionar información de candidatos, partidos políticos, circunscripciones y simulacros de votación para elecciones en Bolivia.
+Backend desarrollado en Django Rest Framework para gestionar información de candidatos, partidos políticos, circunscripciones y simulacros de votación para elecciones en Perú.
 
 ## 🛠️ Tecnologías
 
