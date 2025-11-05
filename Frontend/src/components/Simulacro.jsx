@@ -41,7 +41,7 @@ function Simulacro() {
       setEstadisticas(estadisticasRes.data);
       
       if (votosRes.data.count) {
-        setTotalPages(Math.ceil(votosRes.data.count / 50));
+        setTotalPages(Math.ceil(votosRes.data.count / 10));
       }
     } catch (error) {
       console.error('Error cargando datos:', error);
@@ -217,30 +217,49 @@ function Simulacro() {
                 <thead className="bg-gray-50">
                   <tr>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">DNI</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Nombre Completo</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Votante</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tipo Elección</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Candidato ID</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Partido</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Candidato</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Circunscripción</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Mes/Año</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Fecha Voto</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">IP Address</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200">
                   {votos.map((voto) => (
-                    <tr key={voto.id}>
+                    <tr key={voto.id} className="hover:bg-gray-50">
                       <td className="px-6 py-4 font-semibold">{voto.dni}</td>
                       <td className="px-6 py-4">{voto.nombre_completo || '-'}</td>
                       <td className="px-6 py-4">
                         <span className="px-2 py-1 rounded-full text-xs bg-blue-100 text-blue-800">
-                          {getTipoEleccionLabel(voto.tipo_eleccion)}
+                          {voto.tipo_eleccion_display || getTipoEleccionLabel(voto.tipo_eleccion)}
                         </span>
                       </td>
-                      <td className="px-6 py-4 text-center">{voto.candidato_id}</td>
+                      <td className="px-6 py-4">
+                        <div className="flex items-center space-x-2">
+                          {voto.partido_logo && (
+                            <img 
+                              src={voto.partido_logo} 
+                              alt={voto.partido_siglas}
+                              className="w-10 h-10 object-contain rounded"
+                            />
+                          )}
+                          <div>
+                            <p className="font-semibold text-sm">{voto.partido_siglas || '-'}</p>
+                            <p className="text-xs text-gray-500">{voto.partido_nombre || '-'}</p>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <div>
+                          <p className="font-medium">{voto.candidato_nombre || `ID: ${voto.candidato_id}`}</p>
+                          <p className="text-xs text-gray-500">ID: {voto.candidato_id}</p>
+                        </div>
+                      </td>
                       <td className="px-6 py-4">{voto.circunscripcion_nombre || '-'}</td>
                       <td className="px-6 py-4">{voto.mes_simulacro}/{voto.anio_simulacro}</td>
-                      <td className="px-6 py-4">{new Date(voto.fecha_voto).toLocaleString()}</td>
-                      <td className="px-6 py-4 text-xs text-gray-500">{voto.ip_address || '-'}</td>
+                      <td className="px-6 py-4 text-sm">{new Date(voto.fecha_voto).toLocaleString()}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -276,7 +295,7 @@ function Simulacro() {
               <thead className="bg-gray-50">
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tipo Elección</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Candidato ID</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Candidato</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Total Votos</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Porcentaje</th>
                 </tr>
@@ -289,8 +308,12 @@ function Simulacro() {
                         {getTipoEleccionLabel(resultado.tipo_eleccion)}
                       </span>
                     </td>
-                    <td className="px-6 py-4 text-center font-semibold">{resultado.candidato_id}</td>
-                    <td className="px-6 py-4 text-center">{resultado.votos_candidato}</td>
+                    <td className="px-6 py-4">
+                      <div className="flex items-center space-x-2">
+                        <span className="font-semibold">{resultado.candidato_nombre || `ID: ${resultado.candidato_id}`}</span>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 text-center font-semibold">{resultado.votos_candidato}</td>
                     <td className="px-6 py-4">
                       <div className="flex items-center">
                         <div className="w-full bg-gray-200 rounded-full h-2.5 mr-2">
@@ -299,7 +322,7 @@ function Simulacro() {
                             style={{ width: `${resultado.porcentaje || 0}%` }}
                           ></div>
                         </div>
-                        <span className="text-sm font-semibold">{resultado.porcentaje || 0}%</span>
+                        <span className="text-sm font-semibold min-w-[50px]">{resultado.porcentaje || 0}%</span>
                       </div>
                     </td>
                   </tr>

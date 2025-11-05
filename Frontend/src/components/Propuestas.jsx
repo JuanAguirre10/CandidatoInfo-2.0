@@ -6,11 +6,13 @@ import {
   deletePropuesta,
   exportPropuestas,
   importPropuestas,
+  getCandidatosForSelect,
 } from '../services/api';
-import { Plus, Edit, Trash2, Download, Upload, Search, FileText } from 'lucide-react';
+import { Plus, Edit, Trash2, Download, Upload, Search } from 'lucide-react';
 
 function Propuestas() {
   const [propuestas, setPropuestas] = useState([]);
+  const [candidatos, setCandidatos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [editingPropuesta, setEditingPropuesta] = useState(null);
@@ -35,19 +37,43 @@ function Propuestas() {
     loadPropuestas();
   }, [currentPage, searchTerm]);
 
+  useEffect(() => {
+    if (showModal && formData.tipo_candidato) {
+      loadCandidatos(formData.tipo_candidato);
+    }
+  }, [formData.tipo_candidato, showModal]);
+
   const loadPropuestas = async () => {
     try {
       setLoading(true);
-      const response = await getPropuestas({ page: currentPage, search: searchTerm });
+      const response = await getPropuestas({ page: currentPage, search: searchTerm, page_size: 10 });
       setPropuestas(response.data.results || response.data);
       if (response.data.count) {
-        setTotalPages(Math.ceil(response.data.count / 50));
+        setTotalPages(Math.ceil(response.data.count / 10));
       }
     } catch (error) {
       console.error('Error cargando propuestas:', error);
     } finally {
       setLoading(false);
     }
+  };
+
+  const loadCandidatos = async (tipo) => {
+    try {
+      const response = await getCandidatosForSelect(tipo);
+      setCandidatos(response.data);
+    } catch (error) {
+      console.error('Error cargando candidatos:', error);
+      setCandidatos([]);
+    }
+  };
+
+  const handleTipoCandidatoChange = (tipo) => {
+    setFormData({ 
+      ...formData, 
+      tipo_candidato: tipo,
+      candidato_id: ''
+    });
   };
 
   const handleSubmit = async (e) => {
@@ -135,6 +161,7 @@ function Propuestas() {
       archivo_url: '',
       fecha_publicacion: '',
     });
+    setCandidatos([]);
   };
 
   return (
@@ -204,7 +231,7 @@ function Propuestas() {
                       <td className="px-6 py-4">{prop.categoria || '-'}</td>
                       <td className="px-6 py-4">{prop.eje_tematico || '-'}</td>
                       <td className="px-6 py-4">
-                        {prop.costo_estimado ? `$${parseFloat(prop.costo_estimado).toLocaleString()}` : '-'}
+                        {prop.costo_estimado ? `S/ ${parseFloat(prop.costo_estimado).toLocaleString()}` : '-'}
                       </td>
                       <td className="px-6 py-4">{prop.plazo_implementacion || '-'}</td>
                       <td className="px-6 py-4">{prop.fecha_publicacion || '-'}</td>
@@ -250,21 +277,11 @@ function Propuestas() {
             <form onSubmit={handleSubmit}>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium mb-2">ID Candidato *</label>
-                  <input
-                    type="number"
-                    required
-                    value={formData.candidato_id}
-                    onChange={(e) => setFormData({ ...formData, candidato_id: e.target.value })}
-                    className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
-                <div>
                   <label className="block text-sm font-medium mb-2">Tipo Candidato *</label>
                   <select
                     required
                     value={formData.tipo_candidato}
-                    onChange={(e) => setFormData({ ...formData, tipo_candidato: e.target.value })}
+                    onChange={(e) => handleTipoCandidatoChange(e.target.value)}
                     className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
                     <option value="presidencial">Presidencial</option>
@@ -274,6 +291,26 @@ function Propuestas() {
                     <option value="parlamento_andino">Parlamento Andino</option>
                   </select>
                 </div>
+                
+                <div>
+                  <label className="block text-sm font-medium mb-2">Candidato *</label>
+                  <select
+                    required
+                    value={formData.candidato_id}
+                    onChange={(e) => setFormData({ ...formData, candidato_id: e.target.value })}
+                    className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="">Seleccionar candidato</option>
+                    {candidatos.map(cand => (
+                      <option key={cand.id} value={cand.id}>
+                        {cand.nombre_completo} - {cand.partido}
+                        {cand.numero_lista && ` (Lista ${cand.numero_lista})`}
+                        {cand.circunscripcion && ` - ${cand.circunscripcion}`}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                
                 <div className="col-span-2">
                   <label className="block text-sm font-medium mb-2">Título *</label>
                   <input

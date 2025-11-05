@@ -126,6 +126,15 @@ function Layout({ user, onLogout }) {
               <Vote size={20} />
               <span>Simulacro</span>
             </Link>
+
+            <Link 
+              to="/simulacro/votar"
+              className={`flex items-center space-x-3 px-4 py-3 rounded-lg ${
+                isActive('/simulacro') ? 'bg-blue-100 text-blue-600' : 'hover:bg-gray-100'
+              }`}>
+            <Vote size={20} />
+            <span>Votar</span></Link>
+
           </nav>
         </aside>
 

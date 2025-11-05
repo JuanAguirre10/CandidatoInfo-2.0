@@ -14,6 +14,8 @@ import Simulacro from './components/Simulacro';
 import Propuestas from './components/Propuestas';
 import Proyectos from './components/Proyectos';
 import Denuncias from './components/Denuncias';
+import SimulacroVotar from './components/SimulacroVotar';
+
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -60,6 +62,7 @@ function App() {
           <Route path="proyectos" element={<Proyectos />} />
           <Route path="denuncias" element={<Denuncias />} />
           <Route path="*" element={<Navigate to="/" replace />} />
+          <Route path="/simulacro/votar" element={<SimulacroVotar />} />
         </Route>
       </Routes>
     </BrowserRouter>

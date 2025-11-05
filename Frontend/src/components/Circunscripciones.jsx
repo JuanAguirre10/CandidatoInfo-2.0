@@ -41,10 +41,10 @@ function Circunscripciones() {
   const loadCircunscripciones = async () => {
     try {
       setLoading(true);
-      const response = await getCircunscripciones({ page: currentPage, search: searchTerm });
+      const response = await getCircunscripciones({ page: currentPage, search: searchTerm, page_size: 10 });
       setCircunscripciones(response.data.results || response.data);
       if (response.data.count) {
-        setTotalPages(Math.ceil(response.data.count / 50));
+        setTotalPages(Math.ceil(response.data.count / 10));
       }
     } catch (error) {
       console.error('Error cargando circunscripciones:', error);

@@ -55,9 +55,17 @@ def import_from_excel(file, model, field_mapping):
                             if isinstance(value, str):
                                 value = value.strip()
                             
+                            
+                            
                             if field_name == 'estado':
                                 value_lower = str(value).lower().strip()
-                                if value_lower in ['activo', 'active']:
+                                if value_lower in ['completado', 'completed', 'finalizado']:
+                                    data[field_name] = 'completado'
+                                elif value_lower in ['en_ejecucion', 'en ejecucion', 'en ejecución', 'en curso', 'ejecutando', 'in progress']:
+                                    data[field_name] = 'en_ejecucion'
+                                elif value_lower in ['suspendido', 'suspended', 'pausado']:
+                                    data[field_name] = 'suspendido'
+                                elif value_lower in ['activo', 'active']:
                                     data[field_name] = 'activo'
                                 elif value_lower in ['inactivo', 'inactive']:
                                     data[field_name] = 'inactivo'
@@ -72,22 +80,7 @@ def import_from_excel(file, model, field_mapping):
                                 elif value_lower in ['aprobado', 'approved']:
                                     data[field_name] = 'aprobado'
                                 else:
-                                    data[field_name] = 'activo'
-                            
-                            elif field_name == 'tipo':
-                                value_lower = str(value).lower().strip()
-                                if value_lower in ['partido', 'party']:
-                                    data[field_name] = 'partido'
-                                elif value_lower in ['alianza', 'alliance']:
-                                    data[field_name] = 'alianza'
-                                elif value_lower in ['departamento', 'department']:
-                                    data[field_name] = 'departamento'
-                                elif value_lower in ['provincia_constitucional', 'provincia constitucional']:
-                                    data[field_name] = 'provincia_constitucional'
-                                elif value_lower in ['exterior', 'foreign']:
-                                    data[field_name] = 'exterior'
-                                else:
-                                    data[field_name] = value
+                                    data[field_name] = 'completado'
                             
                             elif field_name == 'color_principal':
                                 color_value = str(value).strip()

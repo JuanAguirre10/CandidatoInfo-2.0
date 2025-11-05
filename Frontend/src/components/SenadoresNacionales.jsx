@@ -6,8 +6,8 @@ import {
   deleteSenadorNacional,
   exportSenadoresNacionales,
   importSenadoresNacionales,
+  getPartidosForSelect,
 } from '../services/api';
-import { getPartidos } from '../services/api';
 import { Plus, Edit, Trash2, Download, Upload, Search, Image as ImageIcon } from 'lucide-react';
 
 function SenadoresNacionales() {
@@ -46,17 +46,17 @@ function SenadoresNacionales() {
     try {
       setLoading(true);
       const [candidatosRes, partidosRes] = await Promise.all([
-        getSenadoresNacionales({ page: currentPage, search: searchTerm }),
-        getPartidos(),
+        getSenadoresNacionales({ page: currentPage, search: searchTerm, page_size: 10 }),
+        getPartidosForSelect(),
       ]);
       
       console.log('Candidatos response:', candidatosRes.data);
       
       setCandidatos(candidatosRes.data.results || candidatosRes.data);
-      setPartidos(partidosRes.data.results || partidosRes.data);
+      setPartidos(partidosRes.data);
       
       if (candidatosRes.data.count) {
-        setTotalPages(Math.ceil(candidatosRes.data.count / 50));
+        setTotalPages(Math.ceil(candidatosRes.data.count / 10));
       }
     } catch (error) {
       console.error('Error cargando datos:', error);

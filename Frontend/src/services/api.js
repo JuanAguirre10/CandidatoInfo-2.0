@@ -9,6 +9,7 @@ const api = axios.create({
   },
 });
 
+
 export const login = (credentials) => api.post('/usuarios/login/', credentials);
 
 export const getPartidos = (params) => api.get('/partidos/', { params });
@@ -146,4 +147,15 @@ export const importDenuncias = (file) => {
   });
 };
 
+export const getPartidosForSelect = () => api.get('/partidos/select_list/');
+export const getCircunscripcionesForSelect = () => api.get('/circunscripciones/select_list/');
+export const getCandidatosForSelect = (tipo) => api.get('/informacion/propuestas/candidatos_list/', { params: { tipo } });
+export const getCandidatosForSelectProyectos = (tipo) => api.get('/informacion/proyectos/candidatos_list/', { params: { tipo } });
+export const getCandidatosForSelectDenuncias = (tipo) => api.get('/informacion/denuncias/candidatos_list/', { params: { tipo } });
+export const getTodasCircunscripciones = () => api.get('/circunscripciones/todas/');
+export const getTodosCandidatosPresidenciales = () => api.get('/candidatos/presidenciales/todos/');
+export const getTodosSenadoresNacionales = () => api.get('/candidatos/senadores-nacionales/todos/');
+export const getTodosSenadoresRegionales = () => api.get('/candidatos/senadores-regionales/todos/');
+export const getTodosDiputados = () => api.get('/candidatos/diputados/todos/');
+export const getTodosParlamentoAndino = () => api.get('/candidatos/parlamento-andino/todos/');
 export default api;

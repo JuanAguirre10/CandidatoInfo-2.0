@@ -74,22 +74,26 @@ class CandidatoSenadorRegionalSerializer(serializers.ModelSerializer):
         read_only_fields = ['fecha_registro', 'fecha_actualizacion']
 
 class CandidatoSenadorRegionalListSerializer(serializers.ModelSerializer):
-    partido_nombre = serializers.CharField(source='partido.nombre', read_only=True)
-    partido_siglas = serializers.CharField(source='partido.siglas', read_only=True)
-    circunscripcion_nombre = serializers.CharField(source='circunscripcion.nombre', read_only=True)
+    partido_nombre = serializers.CharField(source='partido.nombre', read_only=True, allow_null=True)
+    partido_siglas = serializers.CharField(source='partido.siglas', read_only=True, allow_null=True)
+    partido_logo = serializers.CharField(source='partido.logo_url', read_only=True, allow_null=True)
+    circunscripcion_nombre = serializers.CharField(source='circunscripcion.nombre', read_only=True, allow_null=True)
     nombre_completo = serializers.SerializerMethodField()
     
     class Meta:
         model = CandidatoSenadorRegional
         fields = [
-            'id', 'partido', 'partido_nombre', 'partido_siglas',
+            'id', 'partido', 'partido_nombre', 'partido_siglas', 'partido_logo',
             'circunscripcion', 'circunscripcion_nombre',
-            'nombre', 'apellidos', 'nombre_completo', 'foto_url', 'genero', 'posicion_lista',
-            'profesion', 'estado'
+            'nombre', 'apellidos', 'nombre_completo', 'dni', 'foto_url', 
+            'genero', 'edad', 'fecha_nacimiento', 'posicion_lista',
+            'numero_preferencial', 'profesion', 'experiencia_politica',
+            'biografia', 'hoja_vida_url', 'es_natural_circunscripcion',
+            'estado', 'fecha_inscripcion'
         ]
     
     def get_nombre_completo(self, obj):
-        return f"{obj.nombre} {obj.apellidos}"
+        return f"{obj.nombre} {obj.apellidos}" if obj.nombre and obj.apellidos else obj.nombre or obj.apellidos or ""
 
 
 class CandidatoDiputadoSerializer(serializers.ModelSerializer):
@@ -102,22 +106,26 @@ class CandidatoDiputadoSerializer(serializers.ModelSerializer):
         read_only_fields = ['fecha_registro', 'fecha_actualizacion']
 
 class CandidatoDiputadoListSerializer(serializers.ModelSerializer):
-    partido_nombre = serializers.CharField(source='partido.nombre', read_only=True)
-    partido_siglas = serializers.CharField(source='partido.siglas', read_only=True)
-    circunscripcion_nombre = serializers.CharField(source='circunscripcion.nombre', read_only=True)
+    partido_nombre = serializers.CharField(source='partido.nombre', read_only=True, allow_null=True)
+    partido_siglas = serializers.CharField(source='partido.siglas', read_only=True, allow_null=True)
+    partido_logo = serializers.CharField(source='partido.logo_url', read_only=True, allow_null=True)
+    circunscripcion_nombre = serializers.CharField(source='circunscripcion.nombre', read_only=True, allow_null=True)
     nombre_completo = serializers.SerializerMethodField()
     
     class Meta:
         model = CandidatoDiputado
         fields = [
-            'id', 'partido', 'partido_nombre', 'partido_siglas',
+            'id', 'partido', 'partido_nombre', 'partido_siglas', 'partido_logo',
             'circunscripcion', 'circunscripcion_nombre',
-            'nombre', 'apellidos', 'nombre_completo', 'foto_url', 'genero', 'posicion_lista',
-            'profesion', 'estado'
+            'nombre', 'apellidos', 'nombre_completo', 'dni', 'foto_url', 
+            'genero', 'edad', 'fecha_nacimiento', 'posicion_lista',
+            'numero_preferencial', 'profesion', 'experiencia_politica',
+            'biografia', 'hoja_vida_url', 'es_natural_circunscripcion',
+            'estado', 'fecha_inscripcion'
         ]
     
     def get_nombre_completo(self, obj):
-        return f"{obj.nombre} {obj.apellidos}"
+        return f"{obj.nombre} {obj.apellidos}" if obj.nombre and obj.apellidos else obj.nombre or obj.apellidos or ""
 
 
 class CandidatoParlamentoAndinoSerializer(serializers.ModelSerializer):
@@ -129,17 +137,21 @@ class CandidatoParlamentoAndinoSerializer(serializers.ModelSerializer):
         read_only_fields = ['fecha_registro', 'fecha_actualizacion']
 
 class CandidatoParlamentoAndinoListSerializer(serializers.ModelSerializer):
-    partido_nombre = serializers.CharField(source='partido.nombre', read_only=True)
-    partido_siglas = serializers.CharField(source='partido.siglas', read_only=True)
+    partido_nombre = serializers.CharField(source='partido.nombre', read_only=True, allow_null=True)
+    partido_siglas = serializers.CharField(source='partido.siglas', read_only=True, allow_null=True)
+    partido_logo = serializers.CharField(source='partido.logo_url', read_only=True, allow_null=True)
     nombre_completo = serializers.SerializerMethodField()
     
     class Meta:
         model = CandidatoParlamentoAndino
         fields = [
-            'id', 'partido', 'partido_nombre', 'partido_siglas',
-            'nombre', 'apellidos', 'nombre_completo', 'foto_url', 'genero', 'posicion_lista',
-            'profesion', 'idiomas', 'estado'
+            'id', 'partido', 'partido_nombre', 'partido_siglas', 'partido_logo',
+            'nombre', 'apellidos', 'nombre_completo', 'dni', 'foto_url', 
+            'genero', 'edad', 'fecha_nacimiento', 'posicion_lista',
+            'numero_preferencial', 'profesion', 'experiencia_politica',
+            'experiencia_internacional', 'biografia', 'hoja_vida_url',
+            'idiomas', 'estado', 'fecha_inscripcion'
         ]
     
     def get_nombre_completo(self, obj):
-        return f"{obj.nombre} {obj.apellidos}"
+        return f"{obj.nombre} {obj.apellidos}" if obj.nombre and obj.apellidos else obj.nombre or obj.apellidos or ""

@@ -31,6 +31,13 @@ class PartidoPoliticoViewSet(viewsets.ModelViewSet):
     search_fields = ['nombre', 'siglas', 'ideologia', 'lider']
     ordering_fields = ['nombre', 'siglas', 'fecha_registro', 'fundacion_año']
     ordering = ['nombre']
+
+    @action(detail=False, methods=['get'], pagination_class=None)
+    def select_list(self, request):
+        """Endpoint sin paginación para poblar selects en formularios"""
+        partidos = self.queryset.filter(estado='activo').order_by('nombre')
+        serializer = self.get_serializer(partidos, many=True)
+        return Response(serializer.data)
     
     @action(detail=False, methods=['get'])
     def activos(self, request):

@@ -29,6 +29,21 @@ class CircunscripcionViewSet(viewsets.ModelViewSet):
     search_fields = ['nombre', 'codigo', 'capital']
     ordering_fields = ['nombre', 'poblacion', 'electores_registrados', 'numero_diputados']
     ordering = ['nombre']
+
+    @action(detail=False, methods=['get'], pagination_class=None)
+    def select_list(self, request):
+        circunscripciones = self.queryset.all().order_by('nombre')
+        serializer = self.get_serializer(circunscripciones, many=True)
+        return Response(serializer.data)
+    
+    @action(detail=False, methods=['get'], pagination_class=None)
+    def todas(self, request):
+        circunscripciones = Circunscripcion.objects.all().order_by('nombre')
+        serializer = self.get_serializer(circunscripciones, many=True)
+        return Response({
+            'count': circunscripciones.count(),
+            'results': serializer.data
+        })
     
     @action(detail=False, methods=['get'])
     def departamentos(self, request):
