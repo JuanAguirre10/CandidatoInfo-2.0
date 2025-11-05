@@ -6,8 +6,8 @@ import {
   deleteParlamentoAndino,
   exportParlamentoAndino,
   importParlamentoAndino,
+  getPartidosForSelect,
 } from '../services/api';
-import { getPartidos } from '../services/api';
 import { Plus, Edit, Trash2, Download, Upload, Search, Image as ImageIcon } from 'lucide-react';
 
 function ParlamentoAndino() {
@@ -48,13 +48,13 @@ function ParlamentoAndino() {
     try {
       setLoading(true);
       const [candidatosRes, partidosRes] = await Promise.all([
-        getParlamentoAndino({ page: currentPage, search: searchTerm }),
-        getPartidos(),
+        getParlamentoAndino({ page: currentPage, search: searchTerm, page_size: 10 }),
+        getPartidosForSelect(),
       ]);
       setCandidatos(candidatosRes.data.results || candidatosRes.data);
       setPartidos(partidosRes.data.results || partidosRes.data);
       if (candidatosRes.data.count) {
-        setTotalPages(Math.ceil(candidatosRes.data.count / 50));
+        setTotalPages(Math.ceil(candidatosRes.data.count / 10));
       }
     } catch (error) {
       console.error('Error cargando datos:', error);

@@ -6,8 +6,8 @@ import {
   deleteCandidatoPresidencial,
   exportCandidatosPresidenciales,
   importCandidatosPresidenciales,
+  getPartidosForSelect,
 } from '../services/api';
-import { getPartidos } from '../services/api';
 import { Plus, Edit, Trash2, Download, Upload, Search, Image as ImageIcon } from 'lucide-react';
 
 function CandidatosPresidenciales() {
@@ -59,13 +59,13 @@ function CandidatosPresidenciales() {
     try {
       setLoading(true);
       const [candidatosRes, partidosRes] = await Promise.all([
-        getCandidatosPresidenciales({ page: currentPage, search: searchTerm }),
-        getPartidos(),
+        getCandidatosPresidenciales({ page: currentPage, search: searchTerm, page_size: 10 }),
+        getPartidosForSelect(),
       ]);
       setCandidatos(candidatosRes.data.results || candidatosRes.data);
-      setPartidos(partidosRes.data.results || partidosRes.data);
+      setPartidos(partidosRes.data);
       if (candidatosRes.data.count) {
-        setTotalPages(Math.ceil(candidatosRes.data.count / 50));
+        setTotalPages(Math.ceil(candidatosRes.data.count / 10));
       }
     } catch (error) {
       console.error('Error cargando datos:', error);

@@ -26,6 +26,7 @@ class SimulacroVoto(models.Model):
         verbose_name_plural = 'Votos Simulacro'
         ordering = ['-fecha_voto']
         unique_together = [['dni', 'tipo_eleccion', 'mes_simulacro', 'anio_simulacro']]
+        managed = False
     
     def __str__(self):
         return f"{self.dni} - {self.tipo_eleccion} ({self.mes_simulacro}/{self.anio_simulacro})"

@@ -6,11 +6,13 @@ import {
   deleteDenuncia,
   exportDenuncias,
   importDenuncias,
+  getCandidatosForSelectDenuncias,
 } from '../services/api';
-import { Plus, Edit, Trash2, Download, Upload, Search, AlertTriangle } from 'lucide-react';
+import { Plus, Edit, Trash2, Download, Upload, Search } from 'lucide-react';
 
 function Denuncias() {
   const [denuncias, setDenuncias] = useState([]);
+  const [candidatos, setCandidatos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [editingDenuncia, setEditingDenuncia] = useState(null);
@@ -37,19 +39,43 @@ function Denuncias() {
     loadDenuncias();
   }, [currentPage, searchTerm]);
 
+  useEffect(() => {
+    if (showModal && formData.tipo_candidato) {
+      loadCandidatos(formData.tipo_candidato);
+    }
+  }, [formData.tipo_candidato, showModal]);
+
   const loadDenuncias = async () => {
     try {
       setLoading(true);
-      const response = await getDenuncias({ page: currentPage, search: searchTerm });
+      const response = await getDenuncias({ page: currentPage, search: searchTerm, page_size: 10 });
       setDenuncias(response.data.results || response.data);
       if (response.data.count) {
-        setTotalPages(Math.ceil(response.data.count / 50));
+        setTotalPages(Math.ceil(response.data.count / 10));
       }
     } catch (error) {
       console.error('Error cargando denuncias:', error);
     } finally {
       setLoading(false);
     }
+  };
+
+  const loadCandidatos = async (tipo) => {
+    try {
+      const response = await getCandidatosForSelectDenuncias(tipo);
+      setCandidatos(response.data);
+    } catch (error) {
+      console.error('Error cargando candidatos:', error);
+      setCandidatos([]);
+    }
+  };
+
+  const handleTipoCandidatoChange = (tipo) => {
+    setFormData({ 
+      ...formData, 
+      tipo_candidato: tipo,
+      candidato_id: ''
+    });
   };
 
   const handleSubmit = async (e) => {
@@ -139,6 +165,7 @@ function Denuncias() {
       documento_url: '',
       gravedad: 'leve',
     });
+    setCandidatos([]);
   };
 
   return (
@@ -231,7 +258,7 @@ function Denuncias() {
                         </span>
                       </td>
                       <td className="px-6 py-4">
-                        {den.monto_involucrado ? `$${parseFloat(den.monto_involucrado).toLocaleString()}` : '-'}
+                        {den.monto_involucrado ? `S/ ${parseFloat(den.monto_involucrado).toLocaleString()}` : '-'}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <button onClick={() => openModal(den)} className="text-blue-600 hover:text-blue-800 mr-3">
@@ -275,21 +302,11 @@ function Denuncias() {
             <form onSubmit={handleSubmit}>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium mb-2">ID Candidato *</label>
-                  <input
-                    type="number"
-                    required
-                    value={formData.candidato_id}
-                    onChange={(e) => setFormData({ ...formData, candidato_id: e.target.value })}
-                    className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
-                <div>
                   <label className="block text-sm font-medium mb-2">Tipo Candidato *</label>
                   <select
                     required
                     value={formData.tipo_candidato}
-                    onChange={(e) => setFormData({ ...formData, tipo_candidato: e.target.value })}
+                    onChange={(e) => handleTipoCandidatoChange(e.target.value)}
                     className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
                     <option value="presidencial">Presidencial</option>
@@ -299,6 +316,26 @@ function Denuncias() {
                     <option value="parlamento_andino">Parlamento Andino</option>
                   </select>
                 </div>
+                
+                <div>
+                  <label className="block text-sm font-medium mb-2">Candidato *</label>
+                  <select
+                    required
+                    value={formData.candidato_id}
+                    onChange={(e) => setFormData({ ...formData, candidato_id: e.target.value })}
+                    className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="">Seleccionar candidato</option>
+                    {candidatos.map(cand => (
+                      <option key={cand.id} value={cand.id}>
+                        {cand.nombre_completo} - {cand.partido}
+                        {cand.numero_lista && ` (Lista ${cand.numero_lista})`}
+                        {cand.circunscripcion && ` - ${cand.circunscripcion}`}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                
                 <div className="col-span-2">
                   <label className="block text-sm font-medium mb-2">Título *</label>
                   <input

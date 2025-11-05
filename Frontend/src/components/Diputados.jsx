@@ -6,8 +6,9 @@ import {
   deleteDiputado,
   exportDiputados,
   importDiputados,
+  getPartidosForSelect,
+  getCircunscripcionesForSelect
 } from '../services/api';
-import { getPartidos, getCircunscripciones } from '../services/api';
 import { Plus, Edit, Trash2, Download, Upload, Search, Image as ImageIcon } from 'lucide-react';
 
 function Diputados() {
@@ -49,15 +50,15 @@ function Diputados() {
     try {
       setLoading(true);
       const [diputadosRes, partidosRes, circunscripcionesRes] = await Promise.all([
-        getDiputados({ page: currentPage, search: searchTerm }),
-        getPartidos(),
-        getCircunscripciones(),
+        getDiputados({ page: currentPage, search: searchTerm, page_size: 10 }),
+        getPartidosForSelect(),
+        getCircunscripcionesForSelect(),
       ]);
       setDiputados(diputadosRes.data.results || diputadosRes.data);
-      setPartidos(partidosRes.data.results || partidosRes.data);
-      setCircunscripciones(circunscripcionesRes.data.results || circunscripcionesRes.data);
+      setPartidos(partidosRes.data);
+      setCircunscripciones(circunscripcionesRes.data);
       if (diputadosRes.data.count) {
-        setTotalPages(Math.ceil(diputadosRes.data.count / 50));
+        setTotalPages(Math.ceil(diputadosRes.data.count / 10));
       }
     } catch (error) {
       console.error('Error cargando datos:', error);

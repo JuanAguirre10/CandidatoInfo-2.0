@@ -39,10 +39,10 @@ function Partidos() {
   const loadPartidos = async () => {
     try {
       setLoading(true);
-      const response = await getPartidos({ page: currentPage, search: searchTerm });
+      const response = await getPartidos({ page: currentPage, search: searchTerm, page_size: 10 });
       setPartidos(response.data.results || response.data);
       if (response.data.count) {
-        setTotalPages(Math.ceil(response.data.count / 50));
+        setTotalPages(Math.ceil(response.data.count / 10));
       }
     } catch (error) {
       console.error('Error cargando partidos:', error);
