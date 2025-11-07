@@ -54,7 +54,7 @@ class CandidatoPresidencialViewSet(viewsets.ModelViewSet):
     
     @action(detail=False, methods=['get'])
     def aprobados(self, request):
-        candidatos = self.queryset.filter(estado='aprobado')
+        candidatos = self.queryset.filter(estado='inscrito')
         serializer = CandidatoPresidencialListSerializer(candidatos, many=True)
         return Response(serializer.data)
     
@@ -210,7 +210,7 @@ class CandidatoSenadorNacionalViewSet(viewsets.ModelViewSet):
     
     @action(detail=False, methods=['get'])
     def aprobados(self, request):
-        candidatos = self.queryset.filter(estado='aprobado')
+        candidatos = self.queryset.filter(estado='inscrito')
         serializer = CandidatoSenadorNacionalListSerializer(candidatos, many=True)
         return Response(serializer.data)
     
@@ -218,7 +218,7 @@ class CandidatoSenadorNacionalViewSet(viewsets.ModelViewSet):
     def por_partido(self, request):
         partido_id = request.query_params.get('partido_id')
         if partido_id:
-            candidatos = self.queryset.filter(partido_id=partido_id, estado='aprobado')
+            candidatos = self.queryset.filter(partido_id=partido_id, estado='inscrito')
             serializer = CandidatoSenadorNacionalListSerializer(candidatos, many=True)
             return Response(serializer.data)
         return Response({'error': 'Debe especificar partido_id'}, status=400)
@@ -334,7 +334,7 @@ class CandidatoSenadorRegionalViewSet(viewsets.ModelViewSet):
     
     @action(detail=False, methods=['get'])
     def aprobados(self, request):
-        candidatos = self.queryset.filter(estado='aprobado')
+        candidatos = self.queryset.filter(estado='inscrito')
         serializer = CandidatoSenadorRegionalListSerializer(candidatos, many=True)
         return Response(serializer.data)
     
@@ -342,7 +342,7 @@ class CandidatoSenadorRegionalViewSet(viewsets.ModelViewSet):
     def por_circunscripcion(self, request):
         circunscripcion_id = request.query_params.get('circunscripcion_id')
         if circunscripcion_id:
-            candidatos = self.queryset.filter(circunscripcion_id=circunscripcion_id, estado='aprobado')
+            candidatos = self.queryset.filter(circunscripcion_id=circunscripcion_id, estado='inscrito')
             serializer = CandidatoSenadorRegionalListSerializer(candidatos, many=True)
             return Response(serializer.data)
         return Response({'error': 'Debe especificar circunscripcion_id'}, status=400)
@@ -355,7 +355,7 @@ class CandidatoSenadorRegionalViewSet(viewsets.ModelViewSet):
             candidatos = self.queryset.filter(
                 partido_id=partido_id,
                 circunscripcion_id=circunscripcion_id,
-                estado='aprobado'
+                estado='inscrito'
             )
             serializer = CandidatoSenadorRegionalListSerializer(candidatos, many=True)
             return Response(serializer.data)
@@ -476,7 +476,7 @@ class CandidatoDiputadoViewSet(viewsets.ModelViewSet):
     
     @action(detail=False, methods=['get'])
     def aprobados(self, request):
-        candidatos = self.queryset.filter(estado='aprobado')
+        candidatos = self.queryset.filter(estado='inscrito')
         serializer = CandidatoDiputadoListSerializer(candidatos, many=True)
         return Response(serializer.data)
     
@@ -484,7 +484,7 @@ class CandidatoDiputadoViewSet(viewsets.ModelViewSet):
     def por_circunscripcion(self, request):
         circunscripcion_id = request.query_params.get('circunscripcion_id')
         if circunscripcion_id:
-            candidatos = self.queryset.filter(circunscripcion_id=circunscripcion_id, estado='aprobado')
+            candidatos = self.queryset.filter(circunscripcion_id=circunscripcion_id, estado='inscrito')
             serializer = CandidatoDiputadoListSerializer(candidatos, many=True)
             return Response(serializer.data)
         return Response({'error': 'Debe especificar circunscripcion_id'}, status=400)
@@ -497,7 +497,7 @@ class CandidatoDiputadoViewSet(viewsets.ModelViewSet):
             candidatos = self.queryset.filter(
                 partido_id=partido_id,
                 circunscripcion_id=circunscripcion_id,
-                estado='aprobado'
+                estado='inscrito'
             )
             serializer = CandidatoDiputadoListSerializer(candidatos, many=True)
             return Response(serializer.data)
@@ -617,7 +617,7 @@ class CandidatoParlamentoAndinoViewSet(viewsets.ModelViewSet):
     
     @action(detail=False, methods=['get'])
     def aprobados(self, request):
-        candidatos = self.queryset.filter(estado='aprobado')
+        candidatos = self.queryset.filter(estado='inscrito')
         serializer = CandidatoParlamentoAndinoListSerializer(candidatos, many=True)
         return Response(serializer.data)
     
@@ -625,7 +625,7 @@ class CandidatoParlamentoAndinoViewSet(viewsets.ModelViewSet):
     def por_partido(self, request):
         partido_id = request.query_params.get('partido_id')
         if partido_id:
-            candidatos = self.queryset.filter(partido_id=partido_id, estado='aprobado')
+            candidatos = self.queryset.filter(partido_id=partido_id, estado='inscrito')
             serializer = CandidatoParlamentoAndinoListSerializer(candidatos, many=True)
             return Response(serializer.data)
         return Response({'error': 'Debe especificar partido_id'}, status=400)

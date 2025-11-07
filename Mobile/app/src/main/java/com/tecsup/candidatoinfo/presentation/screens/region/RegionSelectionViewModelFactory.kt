@@ -12,10 +12,7 @@ class RegionSelectionViewModelFactory(
     @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(RegionSelectionViewModel::class.java)) {
-            return RegionSelectionViewModel(
-                getCircunscripcionesUseCase,
-                preferencesManager
-            ) as T
+            return RegionSelectionViewModel(getCircunscripcionesUseCase, preferencesManager) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }
