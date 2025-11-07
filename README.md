@@ -538,7 +538,7 @@ simulacro_votos
 - **Samir Alfonso Solorzano**
 - **Matias Galvan Guerrero**
 - **wilson Lopez Aponte**
-- **Yair Araujo**
+- **Yair Araujo Gabriel**
   
 ### 🎓 Institución
 
