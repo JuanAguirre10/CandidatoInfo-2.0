@@ -6,8 +6,9 @@ import {
   deleteSenadorRegional,
   exportSenadoresRegionales,
   importSenadoresRegionales,
+  getPartidosForSelect,
+  getCircunscripcionesForSelect
 } from '../services/api';
-import { getPartidos, getCircunscripciones } from '../services/api';
 import { Plus, Edit, Trash2, Download, Upload, Search, Image as ImageIcon } from 'lucide-react';
 
 function SenadoresRegionales() {
@@ -49,15 +50,15 @@ function SenadoresRegionales() {
     try {
       setLoading(true);
       const [candidatosRes, partidosRes, circRes] = await Promise.all([
-        getSenadoresRegionales({ page: currentPage, search: searchTerm }),
-        getPartidos(),
-        getCircunscripciones(),
+        getSenadoresRegionales({ page: currentPage, search: searchTerm, page_size: 10 }),
+        getPartidosForSelect(),
+        getCircunscripcionesForSelect(),
       ]);
       setCandidatos(candidatosRes.data.results || candidatosRes.data);
-      setPartidos(partidosRes.data.results || partidosRes.data);
-      setCircunscripciones(circRes.data.results || circRes.data);
+      setPartidos(partidosRes.data);
+      setCircunscripciones(circRes.data);
       if (candidatosRes.data.count) {
-        setTotalPages(Math.ceil(candidatosRes.data.count / 50));
+        setTotalPages(Math.ceil(candidatosRes.data.count / 10));
       }
     } catch (error) {
       console.error('Error cargando datos:', error);
@@ -67,63 +68,56 @@ function SenadoresRegionales() {
   };
 
   const cleanFormData = (data) => {
-  const cleaned = { ...data };
-  
-  // Campos de fecha
-  const dateFields = ['fecha_nacimiento', 'fecha_inscripcion'];
-  
-  // Campos numéricos
-  const numericFields = ['edad', 'posicion_lista', 'numero_preferencial', 'partido', 'circunscripcion'];
-  
-  Object.keys(cleaned).forEach(key => {
-    // Convertir strings vacíos a null
-    if (cleaned[key] === '' || cleaned[key] === undefined) {
-      cleaned[key] = null;
-    }
+    const cleaned = { ...data };
     
-    // Validar formato de fechas
-    if (dateFields.includes(key) && cleaned[key] !== null) {
-      // Verificar que la fecha tenga formato YYYY-MM-DD
-      const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
-      if (!dateRegex.test(cleaned[key])) {
-        cleaned[key] = null; // Si no tiene formato correcto, convertir a null
+    const dateFields = ['fecha_nacimiento', 'fecha_inscripcion'];
+    const numericFields = ['edad', 'posicion_lista', 'numero_preferencial', 'partido', 'circunscripcion'];
+    
+    Object.keys(cleaned).forEach(key => {
+      if (cleaned[key] === '' || cleaned[key] === undefined) {
+        cleaned[key] = null;
+      }
+      
+      if (dateFields.includes(key) && cleaned[key] !== null) {
+        const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+        if (!dateRegex.test(cleaned[key])) {
+          cleaned[key] = null;
+        }
+      }
+      
+      if (numericFields.includes(key) && cleaned[key] !== null && cleaned[key] !== '') {
+        const parsed = parseInt(cleaned[key]);
+        cleaned[key] = isNaN(parsed) ? null : parsed;
+      }
+    });
+    
+    return cleaned;
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const cleanedData = cleanFormData(formData);
+      
+      if (editingCandidato) {
+        await updateSenadorRegional(editingCandidato.id, cleanedData);
+      } else {
+        await createSenadorRegional(cleanedData);
+      }
+      setShowModal(false);
+      setEditingCandidato(null);
+      resetForm();
+      loadData();
+    } catch (error) {
+      if (error.response) {
+        console.error('Error detalle:', error.response.data);
+        alert('Error al guardar: ' + JSON.stringify(error.response.data));
+      } else {
+        console.error('Error inesperado:', error);
+        alert('Error inesperado al guardar');
       }
     }
-    
-    // Convertir strings a números
-    if (numericFields.includes(key) && cleaned[key] !== null && cleaned[key] !== '') {
-      const parsed = parseInt(cleaned[key]);
-      cleaned[key] = isNaN(parsed) ? null : parsed;
-    }
-  });
-  
-  return cleaned;
-};
-
-const handleSubmit = async (e) => {
-  e.preventDefault();
-  try {
-    const cleanedData = cleanFormData(formData);
-    
-    if (editingCandidato) {
-      await updateSenadorRegional(editingCandidato.id, cleanedData);
-    } else {
-      await createSenadorRegional(cleanedData);
-    }
-    setShowModal(false);
-    setEditingCandidato(null);
-    resetForm();
-    loadData();
-  } catch (error) {
-    if (error.response) {
-      console.error('Error detalle:', error.response.data);
-      alert('Error al guardar: ' + JSON.stringify(error.response.data));
-    } else {
-      console.error('Error inesperado:', error);
-      alert('Error inesperado al guardar');
-    }
-  }
-};
+  };
 
   const handleDelete = async (id) => {
     if (window.confirm('¿Está seguro de eliminar este candidato?')) {
@@ -170,7 +164,26 @@ const handleSubmit = async (e) => {
   const openModal = (candidato = null) => {
     if (candidato) {
       setEditingCandidato(candidato);
-      setFormData(candidato);
+      setFormData({
+        partido: candidato.partido || '',
+        circunscripcion: candidato.circunscripcion || '',
+        nombre: candidato.nombre || '',
+        apellidos: candidato.apellidos || '',
+        dni: candidato.dni || '',
+        foto_url: candidato.foto_url || '',
+        fecha_nacimiento: candidato.fecha_nacimiento || '',
+        edad: candidato.edad || '',
+        genero: candidato.genero || 'M',
+        profesion: candidato.profesion || '',
+        experiencia_politica: candidato.experiencia_politica || '',
+        biografia: candidato.biografia || '',
+        hoja_vida_url: candidato.hoja_vida_url || '',
+        posicion_lista: candidato.posicion_lista || '',
+        numero_preferencial: candidato.numero_preferencial || '',
+        es_natural_circunscripcion: candidato.es_natural_circunscripcion || false,
+        estado: candidato.estado || 'inscrito',
+        fecha_inscripcion: candidato.fecha_inscripcion || '',
+      });
     } else {
       setEditingCandidato(null);
       resetForm();
@@ -249,54 +262,62 @@ const handleSubmit = async (e) => {
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Circunscripción</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Nombre</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">DNI</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Edad</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Profesión</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Pos. Lista</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">N° Pref.</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Natural</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Estado</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Acciones</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200">
-                  {candidatos.map((cand) => (
-                    <tr key={cand.id}>
-                      <td className="px-6 py-4">
-                        {cand.foto_url ? (
-                          <img src={cand.foto_url} alt={cand.nombre} className="w-10 h-10 rounded-full object-cover" />
-                        ) : (
-                          <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center">
-                            <ImageIcon size={20} className="text-gray-400" />
-                          </div>
-                        )}
-                      </td>
-                      <td className="px-6 py-4">{cand.partido_siglas || '-'}</td>
-                      <td className="px-6 py-4">{cand.circunscripcion_nombre || '-'}</td>
-                      <td className="px-6 py-4">{cand.nombre} {cand.apellidos}</td>
-                      <td className="px-6 py-4">{cand.dni}</td>
-                      <td className="px-6 py-4">{cand.edad || '-'}</td>
-                      <td className="px-6 py-4">{cand.profesion || '-'}</td>
-                      <td className="px-6 py-4 text-center">
-                        {cand.es_natural_circunscripcion ? '✓' : '✗'}
-                      </td>
-                      <td className="px-6 py-4">
-                        <span className={`px-2 py-1 rounded-full text-xs ${
-                          cand.estado === 'aprobado' ? 'bg-green-100 text-green-800' : 
-                          cand.estado === 'observado' ? 'bg-yellow-100 text-yellow-800' : 
-                          cand.estado === 'excluido' ? 'bg-red-100 text-red-800' :
-                          'bg-blue-100 text-blue-800'
-                        }`}>
-                          {cand.estado}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <button onClick={() => openModal(cand)} className="text-blue-600 hover:text-blue-800 mr-3">
-                          <Edit size={18} />
-                        </button>
-                        <button onClick={() => handleDelete(cand.id)} className="text-red-600 hover:text-red-800">
-                          <Trash2 size={18} />
-                        </button>
+                  {candidatos.length === 0 ? (
+                    <tr>
+                      <td colSpan="10" className="px-6 py-8 text-center text-gray-500">
+                        No hay candidatos registrados
                       </td>
                     </tr>
-                  ))}
+                  ) : (
+                    candidatos.map((cand) => (
+                      <tr key={cand.id}>
+                        <td className="px-6 py-4">
+                          {cand.foto_url ? (
+                            <img src={cand.foto_url} alt={cand.nombre} className="w-10 h-10 rounded-full object-cover" />
+                          ) : (
+                            <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center">
+                              <ImageIcon size={20} className="text-gray-400" />
+                            </div>
+                          )}
+                        </td>
+                        <td className="px-6 py-4">{cand.partido_siglas || '-'}</td>
+                        <td className="px-6 py-4">{cand.circunscripcion_nombre || '-'}</td>
+                        <td className="px-6 py-4">{cand.nombre} {cand.apellidos}</td>
+                        <td className="px-6 py-4">{cand.dni || '-'}</td>
+                        <td className="px-6 py-4 text-center">{cand.posicion_lista || '-'}</td>
+                        <td className="px-6 py-4 text-center">{cand.numero_preferencial || '-'}</td>
+                        <td className="px-6 py-4 text-center">
+                          {cand.es_natural_circunscripcion ? '✓' : '✗'}
+                        </td>
+                        <td className="px-6 py-4">
+                          <span className={`px-2 py-1 rounded-full text-xs ${
+                            cand.estado === 'aprobado' ? 'bg-green-100 text-green-800' : 
+                            cand.estado === 'observado' ? 'bg-yellow-100 text-yellow-800' : 
+                            cand.estado === 'excluido' ? 'bg-red-100 text-red-800' :
+                            'bg-blue-100 text-blue-800'
+                          }`}>
+                            {cand.estado}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <button onClick={() => openModal(cand)} className="text-blue-600 hover:text-blue-800 mr-3">
+                            <Edit size={18} />
+                          </button>
+                          <button onClick={() => handleDelete(cand.id)} className="text-red-600 hover:text-red-800">
+                            <Trash2 size={18} />
+                          </button>
+                        </td>
+                      </tr>
+                    ))
+                  )}
                 </tbody>
               </table>
             </div>
@@ -456,6 +477,15 @@ const handleSubmit = async (e) => {
                     <option value="excluido">Excluido</option>
                     <option value="aprobado">Aprobado</option>
                   </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-2">Fecha Inscripción</label>
+                  <input
+                    type="date"
+                    value={formData.fecha_inscripcion}
+                    onChange={(e) => setFormData({ ...formData, fecha_inscripcion: e.target.value })}
+                    className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
                 </div>
                 <div className="col-span-2">
                   <label className="flex items-center space-x-2">

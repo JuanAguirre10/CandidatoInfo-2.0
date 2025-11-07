@@ -68,6 +68,12 @@ class CandidatoPresidencialViewSet(viewsets.ModelViewSet):
                 return Response(serializer.data)
         return Response({'error': 'Partido no encontrado'}, status=404)
     
+    @action(detail=False, methods=['get'], pagination_class=None)
+    def todos(self, request):
+        candidatos = self.queryset.filter(estado='inscrito')
+        serializer = CandidatoPresidencialListSerializer(candidatos, many=True)
+        return Response(serializer.data)
+    
     @action(detail=False, methods=['get'])
     def exportar_excel(self, request):
         candidatos = self.filter_queryset(self.get_queryset())
@@ -217,6 +223,12 @@ class CandidatoSenadorNacionalViewSet(viewsets.ModelViewSet):
             return Response(serializer.data)
         return Response({'error': 'Debe especificar partido_id'}, status=400)
     
+    @action(detail=False, methods=['get'], pagination_class=None)
+    def todos(self, request):
+        candidatos = self.queryset.filter(estado='inscrito')
+        serializer = CandidatoSenadorNacionalListSerializer(candidatos, many=True)
+        return Response(serializer.data)
+    
     @action(detail=False, methods=['get'])
     def exportar_excel(self, request):
         candidatos = self.filter_queryset(self.get_queryset())
@@ -348,6 +360,12 @@ class CandidatoSenadorRegionalViewSet(viewsets.ModelViewSet):
             serializer = CandidatoSenadorRegionalListSerializer(candidatos, many=True)
             return Response(serializer.data)
         return Response({'error': 'Debe especificar partido_id y circunscripcion_id'}, status=400)
+    
+    @action(detail=False, methods=['get'], pagination_class=None)
+    def todos(self, request):
+        candidatos = self.queryset.filter(estado='inscrito')
+        serializer = CandidatoSenadorRegionalListSerializer(candidatos, many=True)
+        return Response(serializer.data)
     
     @action(detail=False, methods=['get'])
     def exportar_excel(self, request):
@@ -485,6 +503,12 @@ class CandidatoDiputadoViewSet(viewsets.ModelViewSet):
             return Response(serializer.data)
         return Response({'error': 'Debe especificar partido_id y circunscripcion_id'}, status=400)
     
+    @action(detail=False, methods=['get'], pagination_class=None)
+    def todos(self, request):
+        candidatos = self.queryset.filter(estado='inscrito')
+        serializer = CandidatoDiputadoListSerializer(candidatos, many=True)
+        return Response(serializer.data)
+    
     @action(detail=False, methods=['get'])
     def exportar_excel(self, request):
         candidatos = self.filter_queryset(self.get_queryset())
@@ -605,6 +629,12 @@ class CandidatoParlamentoAndinoViewSet(viewsets.ModelViewSet):
             serializer = CandidatoParlamentoAndinoListSerializer(candidatos, many=True)
             return Response(serializer.data)
         return Response({'error': 'Debe especificar partido_id'}, status=400)
+    
+    @action(detail=False, methods=['get'], pagination_class=None)
+    def todos(self, request):
+        candidatos = self.queryset.filter(estado='inscrito')
+        serializer = CandidatoParlamentoAndinoListSerializer(candidatos, many=True)
+        return Response(serializer.data)
     
     @action(detail=False, methods=['get'])
     def exportar_excel(self, request):

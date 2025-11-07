@@ -7,6 +7,15 @@ from .models import Propuesta, ProyectoRealizado, Denuncia
 from .serializers import PropuestaSerializer, ProyectoRealizadoSerializer, DenunciaSerializer
 from utils.excel_exporter import export_to_excel
 
+# Importar los modelos de candidatos
+from candidatos.models import (
+    CandidatoPresidencial,
+    CandidatoSenadorNacional,
+    CandidatoSenadorRegional,
+    CandidatoDiputado,
+    CandidatoParlamentoAndino
+)
+
 
 class PropuestaFilter(FilterSet):
     candidato_id = NumberFilter()
@@ -28,6 +37,68 @@ class PropuestaViewSet(viewsets.ModelViewSet):
     search_fields = ['titulo', 'descripcion', 'categoria']
     ordering_fields = ['fecha_publicacion', 'titulo', 'costo_estimado']
     ordering = ['-fecha_publicacion']
+    
+    @action(detail=False, methods=['get'], pagination_class=None)
+    def candidatos_list(self, request):
+        """Endpoint para obtener lista de candidatos según el tipo"""
+        tipo = request.query_params.get('tipo')
+        
+        if not tipo:
+            return Response(
+                {'error': 'Debe especificar el parámetro tipo'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        candidatos = []
+        
+        if tipo == 'presidencial':
+            candidatos_query = CandidatoPresidencial.objects.select_related('partido').all()
+            candidatos = [{
+                'id': c.id,
+                'nombre_completo': f"{c.presidente_nombre} {c.presidente_apellidos}",
+                'partido': c.partido.siglas if c.partido else '',
+                'numero_lista': c.numero_lista
+            } for c in candidatos_query]
+            
+        elif tipo == 'senador_nacional':
+            candidatos_query = CandidatoSenadorNacional.objects.select_related('partido').all()
+            candidatos = [{
+                'id': c.id,
+                'nombre_completo': f"{c.nombre} {c.apellidos}",
+                'partido': c.partido.siglas if c.partido else '',
+                'posicion_lista': c.posicion_lista
+            } for c in candidatos_query]
+            
+        elif tipo == 'senador_regional':
+            candidatos_query = CandidatoSenadorRegional.objects.select_related('partido', 'circunscripcion').all()
+            candidatos = [{
+                'id': c.id,
+                'nombre_completo': f"{c.nombre} {c.apellidos}",
+                'partido': c.partido.siglas if c.partido else '',
+                'circunscripcion': c.circunscripcion.nombre if c.circunscripcion else '',
+                'posicion_lista': c.posicion_lista
+            } for c in candidatos_query]
+            
+        elif tipo == 'diputado':
+            candidatos_query = CandidatoDiputado.objects.select_related('partido', 'circunscripcion').all()
+            candidatos = [{
+                'id': c.id,
+                'nombre_completo': f"{c.nombre} {c.apellidos}",
+                'partido': c.partido.siglas if c.partido else '',
+                'circunscripcion': c.circunscripcion.nombre if c.circunscripcion else '',
+                'posicion_lista': c.posicion_lista
+            } for c in candidatos_query]
+            
+        elif tipo == 'parlamento_andino':
+            candidatos_query = CandidatoParlamentoAndino.objects.select_related('partido').all()
+            candidatos = [{
+                'id': c.id,
+                'nombre_completo': f"{c.nombre} {c.apellidos}",
+                'partido': c.partido.siglas if c.partido else '',
+                'posicion_lista': c.posicion_lista
+            } for c in candidatos_query]
+        
+        return Response(candidatos)
     
     @action(detail=False, methods=['get'])
     def por_candidato(self, request):
@@ -128,6 +199,68 @@ class ProyectoRealizadoViewSet(viewsets.ModelViewSet):
     search_fields = ['titulo', 'descripcion', 'ubicacion']
     ordering_fields = ['fecha_inicio', 'fecha_fin', 'monto_invertido']
     ordering = ['-fecha_inicio']
+    
+    @action(detail=False, methods=['get'], pagination_class=None)
+    def candidatos_list(self, request):
+        """Endpoint para obtener lista de candidatos según el tipo"""
+        tipo = request.query_params.get('tipo')
+        
+        if not tipo:
+            return Response(
+                {'error': 'Debe especificar el parámetro tipo'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        candidatos = []
+        
+        if tipo == 'presidencial':
+            candidatos_query = CandidatoPresidencial.objects.select_related('partido').all()
+            candidatos = [{
+                'id': c.id,
+                'nombre_completo': f"{c.presidente_nombre} {c.presidente_apellidos}",
+                'partido': c.partido.siglas if c.partido else '',
+                'numero_lista': c.numero_lista
+            } for c in candidatos_query]
+            
+        elif tipo == 'senador_nacional':
+            candidatos_query = CandidatoSenadorNacional.objects.select_related('partido').all()
+            candidatos = [{
+                'id': c.id,
+                'nombre_completo': f"{c.nombre} {c.apellidos}",
+                'partido': c.partido.siglas if c.partido else '',
+                'posicion_lista': c.posicion_lista
+            } for c in candidatos_query]
+            
+        elif tipo == 'senador_regional':
+            candidatos_query = CandidatoSenadorRegional.objects.select_related('partido', 'circunscripcion').all()
+            candidatos = [{
+                'id': c.id,
+                'nombre_completo': f"{c.nombre} {c.apellidos}",
+                'partido': c.partido.siglas if c.partido else '',
+                'circunscripcion': c.circunscripcion.nombre if c.circunscripcion else '',
+                'posicion_lista': c.posicion_lista
+            } for c in candidatos_query]
+            
+        elif tipo == 'diputado':
+            candidatos_query = CandidatoDiputado.objects.select_related('partido', 'circunscripcion').all()
+            candidatos = [{
+                'id': c.id,
+                'nombre_completo': f"{c.nombre} {c.apellidos}",
+                'partido': c.partido.siglas if c.partido else '',
+                'circunscripcion': c.circunscripcion.nombre if c.circunscripcion else '',
+                'posicion_lista': c.posicion_lista
+            } for c in candidatos_query]
+            
+        elif tipo == 'parlamento_andino':
+            candidatos_query = CandidatoParlamentoAndino.objects.select_related('partido').all()
+            candidatos = [{
+                'id': c.id,
+                'nombre_completo': f"{c.nombre} {c.apellidos}",
+                'partido': c.partido.siglas if c.partido else '',
+                'posicion_lista': c.posicion_lista
+            } for c in candidatos_query]
+        
+        return Response(candidatos)
     
     @action(detail=False, methods=['get'])
     def por_candidato(self, request):
@@ -236,6 +369,68 @@ class DenunciaViewSet(viewsets.ModelViewSet):
     search_fields = ['titulo', 'descripcion', 'entidad_denunciante']
     ordering_fields = ['fecha_denuncia', 'gravedad', 'monto_involucrado']
     ordering = ['-fecha_denuncia']
+    
+    @action(detail=False, methods=['get'], pagination_class=None)
+    def candidatos_list(self, request):
+        """Endpoint para obtener lista de candidatos según el tipo"""
+        tipo = request.query_params.get('tipo')
+        
+        if not tipo:
+            return Response(
+                {'error': 'Debe especificar el parámetro tipo'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        candidatos = []
+        
+        if tipo == 'presidencial':
+            candidatos_query = CandidatoPresidencial.objects.select_related('partido').all()
+            candidatos = [{
+                'id': c.id,
+                'nombre_completo': f"{c.presidente_nombre} {c.presidente_apellidos}",
+                'partido': c.partido.siglas if c.partido else '',
+                'numero_lista': c.numero_lista
+            } for c in candidatos_query]
+            
+        elif tipo == 'senador_nacional':
+            candidatos_query = CandidatoSenadorNacional.objects.select_related('partido').all()
+            candidatos = [{
+                'id': c.id,
+                'nombre_completo': f"{c.nombre} {c.apellidos}",
+                'partido': c.partido.siglas if c.partido else '',
+                'posicion_lista': c.posicion_lista
+            } for c in candidatos_query]
+            
+        elif tipo == 'senador_regional':
+            candidatos_query = CandidatoSenadorRegional.objects.select_related('partido', 'circunscripcion').all()
+            candidatos = [{
+                'id': c.id,
+                'nombre_completo': f"{c.nombre} {c.apellidos}",
+                'partido': c.partido.siglas if c.partido else '',
+                'circunscripcion': c.circunscripcion.nombre if c.circunscripcion else '',
+                'posicion_lista': c.posicion_lista
+            } for c in candidatos_query]
+            
+        elif tipo == 'diputado':
+            candidatos_query = CandidatoDiputado.objects.select_related('partido', 'circunscripcion').all()
+            candidatos = [{
+                'id': c.id,
+                'nombre_completo': f"{c.nombre} {c.apellidos}",
+                'partido': c.partido.siglas if c.partido else '',
+                'circunscripcion': c.circunscripcion.nombre if c.circunscripcion else '',
+                'posicion_lista': c.posicion_lista
+            } for c in candidatos_query]
+            
+        elif tipo == 'parlamento_andino':
+            candidatos_query = CandidatoParlamentoAndino.objects.select_related('partido').all()
+            candidatos = [{
+                'id': c.id,
+                'nombre_completo': f"{c.nombre} {c.apellidos}",
+                'partido': c.partido.siglas if c.partido else '',
+                'posicion_lista': c.posicion_lista
+            } for c in candidatos_query]
+        
+        return Response(candidatos)
     
     @action(detail=False, methods=['get'])
     def por_candidato(self, request):
