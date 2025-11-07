@@ -24,7 +24,10 @@ import com.tecsup.candidatoinfo.presentation.theme.PinkPrimary
 @Composable
 fun HomeScreen(
     viewModel: HomeViewModel,
-    onChangeRegion: () -> Unit
+    onChangeRegion: () -> Unit,
+    onNavigateToPartidos: () -> Unit,
+    onNavigateToCandidatos: (Int) -> Unit,
+    onNavigateToVotar: () -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
     var showMenu by remember { mutableStateOf(false) }
@@ -80,21 +83,29 @@ fun HomeScreen(
                         )
                         DropdownMenuItem(
                             text = { Text("Partidos Políticos") },
-                            onClick = { showMenu = false },
+                            onClick = {
+                                showMenu = false
+                                onNavigateToPartidos()
+                            },
                             leadingIcon = {
                                 Icon(Icons.Default.AccountBalance, contentDescription = null)
                             }
                         )
                         DropdownMenuItem(
                             text = { Text("Candidatos") },
-                            onClick = { showMenu = false },
+                            onClick = {
+                                showMenu = false
+                                onNavigateToCandidatos(0)
+                            },
                             leadingIcon = {
                                 Icon(Icons.Default.Person, contentDescription = null)
                             }
                         )
                         DropdownMenuItem(
                             text = { Text("Votar") },
-                            onClick = { showMenu = false },
+                            onClick = {
+                                showMenu = false
+                                onNavigateToVotar()},
                             leadingIcon = {
                                 Icon(Icons.Default.HowToVote, contentDescription = null)
                             }
@@ -201,13 +212,13 @@ fun HomeScreen(
                 modifier = Modifier.weight(1f),
                 icon = Icons.Default.AccountBalance,
                 label = "Partidos",
-                onClick = { }
+                onClick = onNavigateToPartidos
             )
             NavigationCard(
                 modifier = Modifier.weight(1f),
                 icon = Icons.Default.HowToVote,
                 label = "Votar",
-                onClick = { }
+                onClick = onNavigateToVotar
             )
             NavigationCard(
                 modifier = Modifier.weight(1f),
@@ -236,7 +247,7 @@ fun HomeScreen(
                     icon = Icons.Default.Person,
                     title = "Presidente",
                     count = "${uiState.countPresidenciales} postulantes",
-                    onClick = { viewModel.onTabSelected(0) }
+                    onClick = { onNavigateToCandidatos(0) }
                 )
             }
 
@@ -245,7 +256,7 @@ fun HomeScreen(
                     icon = Icons.Default.Groups,
                     title = "Senadores Nacionales",
                     count = "${uiState.countSenadoresNacionales} postulantes",
-                    onClick = { viewModel.onTabSelected(1) }
+                    onClick = { onNavigateToCandidatos(1) }
                 )
             }
 
@@ -260,7 +271,7 @@ fun HomeScreen(
                     },
                     onClick = {
                         if (uiState.regionName != null) {
-                            viewModel.onTabSelected(2)
+                            onNavigateToCandidatos(2)
                         } else {
                             onChangeRegion()
                         }
@@ -279,7 +290,7 @@ fun HomeScreen(
                     },
                     onClick = {
                         if (uiState.regionName != null) {
-                            viewModel.onTabSelected(3)
+                            onNavigateToCandidatos(3)
                         } else {
                             onChangeRegion()
                         }
@@ -292,7 +303,7 @@ fun HomeScreen(
                     icon = Icons.Default.Public,
                     title = "Parlamento Andino",
                     count = "${uiState.countParlamentoAndino} postulantes",
-                    onClick = { viewModel.onTabSelected(4) }
+                    onClick = { onNavigateToCandidatos(4) }
                 )
             }
         }
