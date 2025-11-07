@@ -1,0 +1,81 @@
+# =========================
+# ARCHIVOS GENERALES
+# =========================
+# Archivos del sistema
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Carpetas temporales
+__pycache__/
+*.py[cod]
+*.log
+*.tmp
+*.bak
+
+# Entornos virtuales de Python
+venv/
+env/
+.venv/
+ENV/
+*.egg-info/
+.eggs/
+*.idea/
+*.vscode/
+
+# Archivos de configuración de VSCode o PyCharm
+.vscode/
+.idea/
+
+# Archivos de entorno
+.env
+*.env
+
+# Archivos de base de datos o backups
+*.sqlite3
+*.db
+*.sql
+*.csv
+*.xlsx
+*.xls
+
+# =========================
+# BACKEND (DJANGO)
+# =========================
+# Archivos compilados de Django
+*.pyc
+__pycache__/
+db.sqlite3
+/staticfiles/
+media/
+migrations/__pycache__/
+*/migrations/__pycache__/
+
+# =========================
+# FRONTEND (si usas React, Vue o Vite)
+# =========================
+node_modules/
+dist/
+build/
+package-lock.json
+
+# =========================
+# MOBILE (Android / React Native)
+# =========================
+# Android Studio / Gradle
+.gradle/
+local.properties
+*.iml
+*.apk
+*.aab
+/captures/
+/outputs/
+.idea/
+.DS_Store
+
+# =========================
+# OTROS ARCHIVOS QUE NO DEBERÍAN SUBIRSE
+# =========================
+# Archivos personales o pruebas
+*.txt
+*.md.bak
