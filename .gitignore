@@ -23,7 +23,7 @@ ENV/
 *.idea/
 *.vscode/
 
-# Archivos de configuración de VSCode o PyCharm
+# Archivos de configuración de VSCode o PyCcongifurando githarm
 .vscode/
 .idea/
 
