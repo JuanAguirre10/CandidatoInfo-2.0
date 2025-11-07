@@ -6,8 +6,29 @@ import com.tecsup.candidatoinfo.data.remote.dto.DNIValidacionResponse
 import com.tecsup.candidatoinfo.data.remote.dto.VotoRequest
 import java.util.Calendar
 
-
 class VotacionRepository(private val apiService: ApiService) {
+
+    suspend fun validarDNI(dni: String): Result<DNIValidacionResponse> {
+        return try {
+            Log.d("VotacionRepository", "Validando DNI: $dni")
+            val response = apiService.validarDNI(dni)
+
+            if (response.success) {
+                Log.d("VotacionRepository", "✓ DNI válido: ${response.nombreCompleto}")
+                Result.success(response)
+            } else {
+                Log.e("VotacionRepository", "✗ DNI inválido: ${response.mensaje}")
+                Result.failure(Exception(response.mensaje))
+            }
+        } catch (e: retrofit2.HttpException) {
+            val errorBody = e.response()?.errorBody()?.string()
+            Log.e("VotacionRepository", "✗ HTTP Error ${e.code()}: $errorBody", e)
+            Result.failure(Exception("Error ${e.code()}: ${errorBody ?: e.message}"))
+        } catch (e: Exception) {
+            Log.e("VotacionRepository", "✗ Error validando DNI: ${e.message}", e)
+            Result.failure(e)
+        }
+    }
 
     suspend fun registrarVoto(
         dni: String,
@@ -16,9 +37,8 @@ class VotacionRepository(private val apiService: ApiService) {
         circunscripcionId: Int?
     ): Result<Unit> {
         return try {
-            // Usar Calendar en lugar de LocalDate (compatible con API 24+)
             val calendar = Calendar.getInstance()
-            val mes = calendar.get(Calendar.MONTH) + 1  // Calendar.MONTH es 0-based
+            val mes = calendar.get(Calendar.MONTH) + 1
             val anio = calendar.get(Calendar.YEAR)
 
             Log.d("VotacionRepository", """
@@ -27,7 +47,7 @@ class VotacionRepository(private val apiService: ApiService) {
                 - DNI: $dni
                 - Tipo: $tipoEleccion
                 - Candidato ID: $candidatoId
-                - Circunscripción: ${circunscripcionId ?: "null (no requiere)"}
+                - Circunscripción: ${circunscripcionId ?: "null"}
                 - Mes: $mes
                 - Año: $anio
                 ═══════════════════════════════════
@@ -37,23 +57,18 @@ class VotacionRepository(private val apiService: ApiService) {
                 dni = dni,
                 tipoEleccion = tipoEleccion,
                 candidatoId = candidatoId,
-                circunscripcion = circunscripcionId,  // ← Nombre correcto del parámetro
+                circunscripcion = circunscripcionId,
                 mesSimulacro = mes,
                 anioSimulacro = anio
             )
 
-            Log.d("VotacionRepository", "Request JSON: $request")
-
             val response = apiService.registrarVoto(request)
-            Log.d("VotacionRepository", "✓ Voto registrado exitosamente: ${response.message}")
+            Log.d("VotacionRepository", "✓ Voto registrado: ${response.message}")
             Result.success(Unit)
 
         } catch (e: retrofit2.HttpException) {
             val errorBody = e.response()?.errorBody()?.string()
-            Log.e("VotacionRepository", """
-                ✗ HTTP Error ${e.code()}: 
-                Body: $errorBody
-            """.trimIndent(), e)
+            Log.e("VotacionRepository", "✗ HTTP Error ${e.code()}: $errorBody", e)
             Result.failure(Exception("Error ${e.code()}: ${errorBody ?: e.message}"))
         } catch (e: Exception) {
             Log.e("VotacionRepository", "✗ Error registrando voto: ${e.message}", e)

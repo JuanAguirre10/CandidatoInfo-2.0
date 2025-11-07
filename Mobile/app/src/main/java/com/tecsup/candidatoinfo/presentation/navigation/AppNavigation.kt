@@ -42,7 +42,10 @@ import com.tecsup.candidatoinfo.presentation.screens.region.RegionSelectionViewM
 import com.tecsup.candidatoinfo.presentation.screens.region.RegionSelectionViewModelFactory
 import com.tecsup.candidatoinfo.presentation.screens.votacion.*;
 import com.tecsup.candidatoinfo.data.repository.VotacionRepository
-
+import com.tecsup.candidatoinfo.presentation.screens.estadisticas.EstadisticasScreen
+import com.tecsup.candidatoinfo.presentation.screens.estadisticas.EstadisticasViewModel
+import com.tecsup.candidatoinfo.presentation.screens.estadisticas.EstadisticasViewModelFactory
+import com.tecsup.candidatoinfo.data.repository.*
 sealed class Screen(val route: String) {
     object RegionSelection : Screen("region_selection")
     object Home : Screen("home")
@@ -57,6 +60,8 @@ sealed class Screen(val route: String) {
         fun createRoute(tipo: String, id1: Int, id2: Int) = "comparacion/$tipo/$id1/$id2"
     }
     object Votacion : Screen("votacion")
+
+    object Estadisticas : Screen("estadisticas")
 }
 
 @Composable
@@ -112,6 +117,7 @@ fun AppNavigation(
             )
 
             HomeScreen(
+
                 viewModel = viewModel,
                 onChangeRegion = {
                     navController.navigate(Screen.RegionSelection.route) {
@@ -126,7 +132,11 @@ fun AppNavigation(
                 },
                 onNavigateToVotar = {
                     navController.navigate(Screen.Votacion.route)
+                },
+                onNavigateToEstadisticas = {
+                    navController.navigate(Screen.Estadisticas.route)
                 }
+
             )
         }
 
@@ -289,6 +299,30 @@ fun AppNavigation(
             )
 
             VotacionScreen(
+                viewModel = viewModel,
+                onNavigateBack = {
+                    navController.popBackStack()
+                },
+                onNavigateToHome = {
+                    navController.navigate(Screen.Home.route) {
+                        popUpTo(Screen.Home.route) { inclusive = true }
+                    }
+                }
+            )
+        }
+
+        composable(Screen.Estadisticas.route) {
+            val apiService = RetrofitClient.apiService
+            val estadisticasRepository = EstadisticasRepository(apiService)
+
+            val viewModel: EstadisticasViewModel = viewModel(
+                factory = EstadisticasViewModelFactory(
+                    estadisticasRepository,
+                    preferencesManager
+                )
+            )
+
+            EstadisticasScreen(
                 viewModel = viewModel,
                 onNavigateBack = {
                     navController.popBackStack()

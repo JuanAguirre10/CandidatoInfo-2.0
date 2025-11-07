@@ -279,6 +279,14 @@ class SimulacroVotoViewSet(viewsets.ModelViewSet):
     
     @action(detail=False, methods=['get'])
     def resultados_por_candidato(self, request):
+        from candidatos.models import (
+            CandidatoPresidencial, 
+            CandidatoSenadorNacional, 
+            CandidatoSenadorRegional,
+            CandidatoDiputado,
+            CandidatoParlamentoAndino
+        )
+        
         tipo_eleccion = request.query_params.get('tipo_eleccion')
         mes = request.query_params.get('mes_simulacro')
         anio = request.query_params.get('anio_simulacro')
@@ -289,6 +297,7 @@ class SimulacroVotoViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST
             )
         
+        # Agrupar votos por candidato
         resultados = SimulacroVoto.objects.filter(
             tipo_eleccion=tipo_eleccion,
             mes_simulacro=mes,
@@ -299,15 +308,96 @@ class SimulacroVotoViewSet(viewsets.ModelViewSet):
         
         total_votos = sum(r['votos'] for r in resultados)
         
+        # Obtener información completa de cada candidato
+        resultados_completos = []
+        
         for resultado in resultados:
-            resultado['porcentaje'] = round((resultado['votos'] / total_votos * 100), 2) if total_votos > 0 else 0
+            candidato_id = resultado['candidato_id']
+            votos = resultado['votos']
+            porcentaje = round((votos / total_votos * 100), 2) if total_votos > 0 else 0
+            
+            candidato_info = None
+            
+            # Buscar candidato según tipo de elección
+            try:
+                if tipo_eleccion == 'presidencial':
+                    candidato = CandidatoPresidencial.objects.select_related('partido').get(id=candidato_id)
+                    candidato_info = {
+                        'candidato_id': candidato.id,
+                        'candidato_nombre': f"{candidato.presidente_nombre or ''} {candidato.presidente_apellidos or ''}".strip(),
+                        'partido_id': candidato.partido.id if candidato.partido else None,
+                        'partido_nombre': candidato.partido.nombre if candidato.partido else None,
+                        'partido_siglas': candidato.partido.siglas if candidato.partido else None,
+                        'foto_url': candidato.presidente_foto_url,
+                        'votos': votos,
+                        'porcentaje': porcentaje
+                    }
+                
+                elif tipo_eleccion == 'senador_nacional':
+                    candidato = CandidatoSenadorNacional.objects.select_related('partido').get(id=candidato_id)
+                    candidato_info = {
+                        'candidato_id': candidato.id,
+                        'candidato_nombre': f"{candidato.nombre or ''} {candidato.apellidos or ''}".strip(),
+                        'partido_id': candidato.partido.id if candidato.partido else None,
+                        'partido_nombre': candidato.partido.nombre if candidato.partido else None,
+                        'partido_siglas': candidato.partido.siglas if candidato.partido else None,
+                        'foto_url': candidato.foto_url,
+                        'votos': votos,
+                        'porcentaje': porcentaje
+                    }
+                
+                elif tipo_eleccion == 'senador_regional':
+                    candidato = CandidatoSenadorRegional.objects.select_related('partido', 'circunscripcion').get(id=candidato_id)
+                    candidato_info = {
+                        'candidato_id': candidato.id,
+                        'candidato_nombre': f"{candidato.nombre or ''} {candidato.apellidos or ''}".strip(),
+                        'partido_id': candidato.partido.id if candidato.partido else None,
+                        'partido_nombre': candidato.partido.nombre if candidato.partido else None,
+                        'partido_siglas': candidato.partido.siglas if candidato.partido else None,
+                        'foto_url': candidato.foto_url,
+                        'votos': votos,
+                        'porcentaje': porcentaje
+                    }
+                
+                elif tipo_eleccion == 'diputado':
+                    candidato = CandidatoDiputado.objects.select_related('partido', 'circunscripcion').get(id=candidato_id)
+                    candidato_info = {
+                        'candidato_id': candidato.id,
+                        'candidato_nombre': f"{candidato.nombre or ''} {candidato.apellidos or ''}".strip(),
+                        'partido_id': candidato.partido.id if candidato.partido else None,
+                        'partido_nombre': candidato.partido.nombre if candidato.partido else None,
+                        'partido_siglas': candidato.partido.siglas if candidato.partido else None,
+                        'foto_url': candidato.foto_url,
+                        'votos': votos,
+                        'porcentaje': porcentaje
+                    }
+                
+                elif tipo_eleccion == 'parlamento_andino':
+                    candidato = CandidatoParlamentoAndino.objects.select_related('partido').get(id=candidato_id)
+                    candidato_info = {
+                        'candidato_id': candidato.id,
+                        'candidato_nombre': f"{candidato.nombre or ''} {candidato.apellidos or ''}".strip(),
+                        'partido_id': candidato.partido.id if candidato.partido else None,
+                        'partido_nombre': candidato.partido.nombre if candidato.partido else None,
+                        'partido_siglas': candidato.partido.siglas if candidato.partido else None,
+                        'foto_url': candidato.foto_url,
+                        'votos': votos,
+                        'porcentaje': porcentaje
+                    }
+                
+                if candidato_info:
+                    resultados_completos.append(candidato_info)
+                    
+            except Exception as e:
+                print(f"Error obteniendo info del candidato {candidato_id}: {str(e)}")
+                continue
         
         return Response({
             'tipo_eleccion': tipo_eleccion,
-            'mes': mes,
-            'anio': anio,
+            'mes': str(mes),
+            'anio': str(anio),
             'total_votos': total_votos,
-            'resultados': resultados
+            'resultados': resultados_completos
         })
     
     @action(detail=False, methods=['get'])

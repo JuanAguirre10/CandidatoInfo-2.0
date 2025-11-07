@@ -1,6 +1,7 @@
 package com.tecsup.candidatoinfo.data.remote.api
 
 import com.tecsup.candidatoinfo.data.remote.dto.*
+import com.tecsup.candidatoinfo.domain.model.EstadisticaVoto
 import retrofit2.http.Query
 import retrofit2.http.GET
 import retrofit2.http.POST
@@ -59,5 +60,12 @@ interface ApiService {
 
     @POST("api/simulacro/votos/")
     suspend fun registrarVoto(@Body request: VotoRequest): VotoResponse
+
+    @GET("api/simulacro/votos/resultados_por_candidato/")
+    suspend fun getEstadisticasPorTipo(
+        @Query("tipo_eleccion") tipoEleccion: String,
+        @Query("mes_simulacro") mes: Int,
+        @Query("anio_simulacro") anio: Int
+    ): EstadisticasResponse
 
 }

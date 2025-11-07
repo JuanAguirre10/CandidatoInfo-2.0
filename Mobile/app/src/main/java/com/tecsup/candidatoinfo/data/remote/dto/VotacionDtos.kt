@@ -14,6 +14,8 @@ data class VotoRequest(
     @SerializedName("tipo_eleccion") val tipoEleccion: String,
     @SerializedName("candidato_id") val candidatoId: Int,
     @SerializedName("circunscripcion") val circunscripcion: Int?,
+    @SerializedName("mes_simulacro") val mesSimulacro: Int,
+    @SerializedName("anio_simulacro") val anioSimulacro: Int
 )
 
 data class VotoResponse(

@@ -27,7 +27,8 @@ fun HomeScreen(
     onChangeRegion: () -> Unit,
     onNavigateToPartidos: () -> Unit,
     onNavigateToCandidatos: (Int) -> Unit,
-    onNavigateToVotar: () -> Unit
+    onNavigateToVotar: () -> Unit,
+    onNavigateToEstadisticas: () -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
     var showMenu by remember { mutableStateOf(false) }
@@ -112,7 +113,10 @@ fun HomeScreen(
                         )
                         DropdownMenuItem(
                             text = { Text("Estadísticas") },
-                            onClick = { showMenu = false },
+                            onClick = {
+                                showMenu = false
+                                onNavigateToEstadisticas()
+                                      },
                             leadingIcon = {
                                 Icon(Icons.Default.BarChart, contentDescription = null)
                             }
@@ -224,7 +228,7 @@ fun HomeScreen(
                 modifier = Modifier.weight(1f),
                 icon = Icons.Default.BarChart,
                 label = "Estadísticas",
-                onClick = { }
+                onClick = onNavigateToEstadisticas
             )
         }
 
